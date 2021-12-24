@@ -1,0 +1,18 @@
+-- drop all
+DROP TABLE IF EXISTS courier_time_period CASCADE;
+
+DROP TABLE IF EXISTS contract_time_period CASCADE;
+
+DROP TABLE IF EXISTS courier_region CASCADE;
+
+DROP TABLE IF EXISTS courier CASCADE;
+
+DROP TABLE IF EXISTS contract CASCADE;
+
+DROP TABLE IF EXISTS type_courier CASCADE;
+
+DROP TABLE IF EXISTS time_period CASCADE;
+
+DROP TABLE IF EXISTS region CASCADE;
+
+DROP TYPE IF EXISTS status_contract CASCADE;
