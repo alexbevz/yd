@@ -5,10 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,7 +20,15 @@ public class Courier {
     @Column(name = "courier_id")
     private long courierId;
 
-    @Column(name = "type_courier_id")
-    private long typeCourierId;
+    @ManyToOne
+    @JoinColumn(name = "type_courier_id")
+    private TypeCourier typeCourierId;
 
+    @ManyToMany
+    @JoinTable(name = "courier_time_period", joinColumns = @JoinColumn(name = "courier_id"), inverseJoinColumns = @JoinColumn(name = "time_period_id"))
+    private List<TimePeriod> timePeriodList;
+
+    @ManyToMany
+    @JoinTable(name = "courier_region", joinColumns = @JoinColumn(name = "courier_id"), inverseJoinColumns = @JoinColumn(name = "region_id"))
+    private List<Region> regionList;
 }

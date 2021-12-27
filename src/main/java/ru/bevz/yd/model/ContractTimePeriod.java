@@ -5,10 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Setter
 @Getter
@@ -22,10 +19,12 @@ public class ContractTimePeriod {
     @Column(name = "contract_time_period_id")
     private long contractTimePeriodId;
 
-    @Column(name = "contract_id")
-    private long contractId;
+    @ManyToOne
+    @JoinColumn(name = "contract_id")
+    private Contract contract;
 
-    @Column(name = "time_period_id")
-    private long timePeriodId;
+    @ManyToOne
+    @JoinColumn(name = "time_period_id")
+    private TimePeriod timePeriod;
 
 }

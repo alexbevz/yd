@@ -9,6 +9,7 @@ import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,23 +24,30 @@ public class Contract {
     @Column(name = "contract_id")
     private long contractId;
 
-    @Column(name = "region_id")
-    private long regionId;
+    @ManyToOne
+    @JoinColumn(name = "region_id")
+    private Region region;
 
     @Column
     private float weight;
 
-    @Column
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     @Type(type = "status_contract")
     private StatusContract status;
 
-    @Column(name = "courier_id")
-    private long courierId;
+    @ManyToOne
+    @JoinColumn(name = "courier_id")
+    private Courier courier;
 
     @Column(name = "datetime_assignment")
     private LocalDateTime datetimeAssignment;
 
     @Column(name = "datetime_realization")
     private LocalDateTime datetimeRealization;
+
+    @ManyToMany
+    @JoinTable(name = "contract_time_period", joinColumns = @JoinColumn(name = "contract_id"), inverseJoinColumns = @JoinColumn(name = "time_period_id"))
+    private List<TimePeriod> TimePeriodList;
+
 }

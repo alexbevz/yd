@@ -5,10 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -22,10 +19,12 @@ public class CourierRegion {
     @Column(name = "courier_region_id")
     private long courierRegionId;
 
-    @Column(name = "courier_id")
-    private long courierId;
+    @ManyToOne
+    @JoinColumn(name = "courier_id")
+    private Courier courier;
 
-    @Column(name = "region_id")
-    private long regionId;
+    @ManyToOne
+    @JoinColumn(name = "region_id")
+    private Region region;
 
 }
