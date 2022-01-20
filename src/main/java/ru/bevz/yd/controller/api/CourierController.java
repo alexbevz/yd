@@ -17,6 +17,7 @@ public class CourierController {
 
     @PostMapping("")
     public ResponseEntity<Object> createCouriers(@RequestBody CouriersRequest couriersRequest) {
+
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
