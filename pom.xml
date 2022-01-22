@@ -26,6 +26,7 @@
     </developers>
 
     <properties>
+
         <java.version>17</java.version>
         <liquibase.version>4.2.0</liquibase.version>
         <postgresql.version>42.3.1</postgresql.version>
@@ -98,7 +99,6 @@
                 <configuration>
                     <changeLogFile>src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
                     <url>jdbc:postgresql://localhost:5432/delivery_db</url>
-                    <driver>org.postgresql.Driver</driver>
                     <username>postgres</username>
                     <password>postgres</password>
                 </configuration>
