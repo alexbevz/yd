@@ -40,7 +40,10 @@ public class Courier {
     )
     private Set<Region> regionList;
 
+    @Transient
     private float rating;
 
+    @Transient
     private float earnings;
+
 }

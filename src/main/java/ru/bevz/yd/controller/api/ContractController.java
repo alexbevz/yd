@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.bevz.yd.controller.request.CompletedContractRequest;
 import ru.bevz.yd.controller.request.ContractsRequest;
 import ru.bevz.yd.controller.request.CourierInfo;
-import ru.bevz.yd.repository.ContractRepository;
+import ru.bevz.yd.service.ContractService;
 
 @RestController
 @RequestMapping("/orders")
 public class ContractController {
 
     @Autowired
-    private ContractRepository contractRepository;
+    private ContractService contractService;
 
     @PostMapping("")
     public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) {
