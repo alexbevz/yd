@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class CouriersIdOKResponse {
+public class CourierIdOKResponse {
 
     @JsonProperty("courier_id")
     private int id;

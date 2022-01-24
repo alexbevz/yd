@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository;
 import ru.bevz.yd.model.Courier;
 
 @Repository
-public interface CourierRepository extends JpaRepository<Courier, Long> {
+public interface CourierRepository extends JpaRepository<Courier, Integer> {
 
 }

@@ -5,6 +5,10 @@ import org.springframework.stereotype.Repository;
 import ru.bevz.yd.model.TypeCourier;
 
 @Repository
-public interface TypeCourierRepository extends JpaRepository<TypeCourier, Long> {
+public interface TypeCourierRepository extends JpaRepository<TypeCourier, Integer> {
+
+    boolean existsByName(String name);
+
+    TypeCourier getTypeCourierByName(String name);
 
 }

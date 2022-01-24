@@ -3,8 +3,8 @@ package ru.bevz.yd.dto.mapper;
 import org.springframework.stereotype.Component;
 import ru.bevz.yd.controller.request.CourierInfo;
 import ru.bevz.yd.controller.request.CourierPatchRequest;
+import ru.bevz.yd.controller.response.CourierIdOKResponse;
 import ru.bevz.yd.controller.response.CourierInfoResponse;
-import ru.bevz.yd.controller.response.CouriersIdOKResponse;
 import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.Region;
@@ -65,8 +65,8 @@ public class CourierMapper {
                 .setEarnings(courierDto.getEarnings());
     }
 
-    public CouriersIdOKResponse toCourierIdOkResponse(CourierDto courierDto) {
-        return new CouriersIdOKResponse()
+    public CourierIdOKResponse toCourierIdOkResponse(CourierDto courierDto) {
+        return new CourierIdOKResponse()
                 .setId(courierDto.getId())
                 .setCourierType(courierDto.getType())
                 .setRegions(courierDto.getRegionList())

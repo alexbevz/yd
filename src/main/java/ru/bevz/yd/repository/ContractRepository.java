@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository;
 import ru.bevz.yd.model.Contract;
 
 @Repository
-public interface ContractRepository extends JpaRepository<Contract, Long> {
+public interface ContractRepository extends JpaRepository<Contract, Integer> {
 
 }
