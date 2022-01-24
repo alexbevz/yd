@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ContractRequest {
+public class ContractsRequest {
 
     @JsonProperty("data")
     private List<ContractInfo> contractInfoList;

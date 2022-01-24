@@ -1,4 +1,4 @@
-package ru.bevz.yd.controller.request;
+package ru.bevz.yd.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class CourierInfo {
+public class CouriersIdOKResponse {
 
     @JsonProperty("courier_id")
     private int id;
@@ -24,5 +24,4 @@ public class CourierInfo {
     @JsonProperty("working_hours")
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
     private List<String> workingHours;
-
 }

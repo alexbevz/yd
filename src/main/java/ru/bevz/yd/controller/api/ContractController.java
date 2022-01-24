@@ -3,9 +3,12 @@ package ru.bevz.yd.controller.api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.bevz.yd.controller.request.CompletedContractRequest;
-import ru.bevz.yd.controller.request.ContractRequest;
+import ru.bevz.yd.controller.request.ContractsRequest;
 import ru.bevz.yd.controller.request.CourierInfo;
 import ru.bevz.yd.repository.ContractRepository;
 
@@ -17,7 +20,7 @@ public class ContractController {
     private ContractRepository contractRepository;
 
     @PostMapping("")
-    public ResponseEntity<Object> createContracts(@RequestBody ContractRequest contractRequest) {
+    public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 

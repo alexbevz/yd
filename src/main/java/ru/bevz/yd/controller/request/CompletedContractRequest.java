@@ -2,7 +2,6 @@ package ru.bevz.yd.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -10,13 +9,12 @@ import java.time.LocalDateTime;
 public class CompletedContractRequest {
 
     @JsonProperty("courier_id")
-    private long courierId;
+    private int courierId;
 
     @JsonProperty("order_id")
-    private long contractId;
+    private int contractId;
 
     @JsonProperty("complete_time")
-    @DateTimeFormat
     private LocalDateTime dateTimeCompleted;
 
 }
