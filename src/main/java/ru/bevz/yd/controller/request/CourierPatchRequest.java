@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CourierChangeRequest {
+public class CourierPatchRequest {
 
     @JsonProperty("courier_type")
     private String CourierType;

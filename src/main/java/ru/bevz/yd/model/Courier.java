@@ -3,6 +3,7 @@ package ru.bevz.yd.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -10,6 +11,7 @@ import java.util.Set;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@Accessors(chain = true)
 @Entity
 @Table(name = "courier")
 public class Courier {
@@ -38,4 +40,7 @@ public class Courier {
     )
     private Set<Region> regionList;
 
+    private float rating;
+
+    private float earnings;
 }

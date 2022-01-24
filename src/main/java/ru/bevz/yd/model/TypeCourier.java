@@ -3,6 +3,7 @@ package ru.bevz.yd.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +13,7 @@ import javax.persistence.Table;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@Accessors(chain = true)
 @Entity
 @Table(name = "type_courier")
 public class TypeCourier {

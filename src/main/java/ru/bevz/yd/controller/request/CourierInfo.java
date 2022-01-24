@@ -3,10 +3,12 @@ package ru.bevz.yd.controller.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.util.List;
 
 @Data
+@Accessors(chain = true)
 public class CourierInfo {
 
     @JsonProperty("courier_id")

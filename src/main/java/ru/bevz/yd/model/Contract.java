@@ -3,6 +3,7 @@ package ru.bevz.yd.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -13,6 +14,7 @@ import java.util.Set;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@Accessors(chain = true)
 @Entity
 @Table(name = "contract")
 @TypeDef(name = "status_contract", typeClass = PostgreSQLStatusContract.class)

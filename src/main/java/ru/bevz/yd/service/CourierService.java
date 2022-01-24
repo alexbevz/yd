@@ -13,7 +13,16 @@ public class CourierService {
     @Autowired
     private CourierRepository courierRepository;
 
-    public void createCouriers(List<CourierDto> courierDtoList) {
+    public void addNewCouriers(List<CourierDto> courierDtoList) {
 
     }
+
+    public CourierDto patchCourier(CourierDto courierDto) {
+        return new CourierDto();
+    }
+
+    public CourierDto getCourierInfo(CourierDto courierDto) {
+        return new CourierDto();
+    }
+
 }
