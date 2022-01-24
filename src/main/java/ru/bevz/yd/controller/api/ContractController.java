@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.bevz.yd.controller.request.CompletedContractRequest;
-import ru.bevz.yd.controller.request.ContractRequest;
+import ru.bevz.yd.controller.request.ContractsRequest;
 import ru.bevz.yd.controller.request.CourierInfo;
 import ru.bevz.yd.repository.ContractRepository;
 
@@ -20,7 +20,7 @@ public class ContractController {
     private ContractRepository contractRepository;
 
     @PostMapping("")
-    public ResponseEntity<Object> createContracts(@RequestBody ContractRequest contractRequest) {
+    public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 

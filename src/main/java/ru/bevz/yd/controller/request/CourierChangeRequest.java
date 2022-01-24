@@ -7,13 +7,10 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CourierInfo {
-
-    @JsonProperty("courier_id")
-    private int id;
+public class CourierChangeRequest {
 
     @JsonProperty("courier_type")
-    private String courierType;
+    private String CourierType;
 
     @JsonProperty("regions")
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
