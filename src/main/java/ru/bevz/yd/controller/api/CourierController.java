@@ -57,8 +57,9 @@ public class CourierController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getCourier(@PathVariable(value = "id") int courierId) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    public ResponseEntity<Object> getCourier(@PathVariable(value = "id") int courierId) throws Exception {
+        CourierDto courierDto = courierService.getCourierInfoById(courierId);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(courierMapper.toCourierInfoResponse(courierDto));
     }
 
 }

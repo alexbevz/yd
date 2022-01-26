@@ -46,6 +46,9 @@ public class Contract {
     @Column(name = "datetime_realization")
     private LocalDateTime datetimeRealization;
 
+    @Column(name = "datetime_realization_start")
+    private LocalDateTime datetimeRealizationStart;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "contract_time_period"

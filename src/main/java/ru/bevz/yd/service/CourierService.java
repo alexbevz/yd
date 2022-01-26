@@ -3,6 +3,8 @@ package ru.bevz.yd.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import ru.bevz.yd.constants.GlobalConstant;
+import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
 import ru.bevz.yd.model.Courier;
@@ -33,6 +35,9 @@ public class CourierService {
     @Autowired
     private TimePeriodService timePeriodService;
 
+    @Autowired
+    private CourierMapper courierMapper;
+
     @Transactional
     public ValidAndNotValidIdLists addNewCouriers(List<CourierDto> courierDtoList) {
         ValidAndNotValidIdLists valid = new ValidAndNotValidIdLists();
@@ -57,8 +62,27 @@ public class CourierService {
         return new CourierDto();
     }
 
-    public CourierDto getCourierInfo(CourierDto courierDto) {
-        return new CourierDto();
+    public CourierDto getCourierInfoById(int courierId) throws Exception {
+
+        if (!courierRepository.existsById(courierId)) {
+            throw new Exception("Courier does not exists with ID " + courierId);
+        }
+
+        CourierDto courierDto = courierMapper.toCourierDto(courierRepository.getById(courierId));
+
+        int hs = 60 * 60;
+        int t = courierRepository.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
+        float rating = (float) (hs - Math.min(t, hs)) / hs * 5;
+        courierDto.setRating(rating);
+
+        float earnings =
+                courierRepository.getEarningsByCourierIdAndAwardForContract(
+                        courierId
+                        , GlobalConstant.AWARD_FOR_CONTRACT
+                ).orElse(0);
+        courierDto.setEarnings(earnings);
+
+        return courierDto;
     }
 
     private Courier addNewCourier(CourierDto courierDto) throws Exception {
