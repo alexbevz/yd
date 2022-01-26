@@ -27,7 +27,7 @@ public class CourierController {
     private CourierMapper courierMapper;
 
     @Autowired
-    private ValidAndNotValidIdListsMapper validsMapper;
+    private ValidAndNotValidIdListsMapper validMapper;
 
     @PostMapping("")
     public ResponseEntity<Object> createCouriers(@RequestBody CouriersRequest couriersRequest) {
@@ -36,25 +36,28 @@ public class CourierController {
                 .map(courierInfo -> courierMapper.toCourierDto(courierInfo))
                 .toList();
 
-        ValidAndNotValidIdLists valids = courierService.addNewCouriers(courierDtoList);
+        ValidAndNotValidIdLists valid = courierService.addNewCouriers(courierDtoList);
 
-        if (valids.hasNotValid()) {
-            CouriersBadRequestResponse response = validsMapper.toCouriersBadRequestResponse(valids);
+        if (valid.hasNotValid()) {
+            CouriersBadRequestResponse response = validMapper.toCouriersBadRequestResponse(valid);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
-        CouriersCreatedResponse response = validsMapper.toCouriersCreatedResponse(valids);
+        CouriersCreatedResponse response = validMapper.toCouriersCreatedResponse(valid);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Object> patchCourier(@PathVariable(value = "id") long courierId, @RequestBody CourierInfo courierInfo) {
+    public ResponseEntity<Object> patchCourier(
+            @PathVariable(value = "id") int courierId
+            , @RequestBody CourierInfo courierInfo
+    ) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getCourier(@PathVariable(value = "id") long courierId) {
+    public ResponseEntity<Object> getCourier(@PathVariable(value = "id") int courierId) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 

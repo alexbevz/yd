@@ -3,7 +3,6 @@ package ru.bevz.yd.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
 import ru.bevz.yd.model.Courier;
@@ -11,8 +10,6 @@ import ru.bevz.yd.model.Region;
 import ru.bevz.yd.model.TimePeriod;
 import ru.bevz.yd.model.TypeCourier;
 import ru.bevz.yd.repository.CourierRepository;
-import ru.bevz.yd.repository.RegionRepository;
-import ru.bevz.yd.repository.TimePeriodRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
@@ -38,22 +35,22 @@ public class CourierService {
 
     @Transactional
     public ValidAndNotValidIdLists addNewCouriers(List<CourierDto> courierDtoList) {
-        ValidAndNotValidIdLists valids = new ValidAndNotValidIdLists();
+        ValidAndNotValidIdLists valid = new ValidAndNotValidIdLists();
 
         for (CourierDto courierDto : courierDtoList) {
             try {
                 Courier courier = addNewCourier(courierDto);
-                valids.addValidId(courier.getId());
+                valid.addValidId(courier.getId());
             } catch (Exception e) {
-                valids.addNotValidId(courierDto.getId());
+                valid.addNotValidId(courierDto.getId());
             }
         }
 
-        if (valids.hasNotValid()) {
+        if (valid.hasNotValid()) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
 
-        return valids;
+        return valid;
     }
 
     public CourierDto patchCourier(CourierDto courierDto) {

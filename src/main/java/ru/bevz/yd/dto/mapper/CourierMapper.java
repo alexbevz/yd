@@ -42,9 +42,7 @@ public class CourierMapper {
                 .setTimePeriodList(courier.getTimePeriodList()
                         .stream()
                         .map(DateTimeUtils::toStringTP)
-                        .collect(Collectors.toList()))
-                .setRating(courier.getRating())
-                .setEarnings(courier.getEarnings());
+                        .collect(Collectors.toList()));
     }
 
     public CourierInfo toCourierInfo(CourierDto courierDto) {
