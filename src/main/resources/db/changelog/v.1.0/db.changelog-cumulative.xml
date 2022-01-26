@@ -5,4 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
     <include file="${path-v.1.0}db.changelog-1.0-init-db-and-tables.xml"/>
     <include file="${path-v.1.0}db.changelog-1.01-edit-name-of-fields.xml"/>
+    <include file="${path-v.1.0}db.changelog-1.02-edited-contract-added-column.xml"/>
+    <include file="${path-v.1.0}db.changelog-1.03-added-function-to-seconds-from-time.xml"/>
+    <include file="${path-v.1.0}db.changelog-1.04-added-column-type-courier-to-contract.xml"/>
 </databaseChangeLog>

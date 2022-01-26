@@ -12,6 +12,6 @@ public class PostgreSQLStatusContract extends EnumType<StatusContract> {
 
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
-        st.setObject(index, value != null ? ((Enum) value) : null, Types.OTHER);
+        st.setObject(index, value != null ? value : null, Types.OTHER);
     }
 }

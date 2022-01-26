@@ -3,6 +3,7 @@ package ru.bevz.yd.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import ru.bevz.yd.constants.GlobalConstant;
 import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
@@ -11,8 +12,6 @@ import ru.bevz.yd.model.Region;
 import ru.bevz.yd.model.TimePeriod;
 import ru.bevz.yd.model.TypeCourier;
 import ru.bevz.yd.repository.CourierRepository;
-import ru.bevz.yd.repository.RegionRepository;
-import ru.bevz.yd.repository.TimePeriodRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
@@ -36,32 +35,54 @@ public class CourierService {
     @Autowired
     private TimePeriodService timePeriodService;
 
+    @Autowired
+    private CourierMapper courierMapper;
+
     @Transactional
     public ValidAndNotValidIdLists addNewCouriers(List<CourierDto> courierDtoList) {
-        ValidAndNotValidIdLists valids = new ValidAndNotValidIdLists();
+        ValidAndNotValidIdLists valid = new ValidAndNotValidIdLists();
 
         for (CourierDto courierDto : courierDtoList) {
             try {
                 Courier courier = addNewCourier(courierDto);
-                valids.addValidId(courier.getId());
+                valid.addValidId(courier.getId());
             } catch (Exception e) {
-                valids.addNotValidId(courierDto.getId());
+                valid.addNotValidId(courierDto.getId());
             }
         }
 
-        if (valids.hasNotValid()) {
+        if (valid.hasNotValid()) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
 
-        return valids;
+        return valid;
     }
 
     public CourierDto patchCourier(CourierDto courierDto) {
         return new CourierDto();
     }
 
-    public CourierDto getCourierInfo(CourierDto courierDto) {
-        return new CourierDto();
+    public CourierDto getCourierInfoById(int courierId) throws Exception {
+
+        if (!courierRepository.existsById(courierId)) {
+            throw new Exception("Courier does not exists with ID " + courierId);
+        }
+
+        CourierDto courierDto = courierMapper.toCourierDto(courierRepository.getById(courierId));
+
+        int hs = 60 * 60;
+        int t = courierRepository.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
+        float rating = (float) (hs - Math.min(t, hs)) / hs * 5;
+        courierDto.setRating(rating);
+
+        float earnings =
+                courierRepository.getEarningsByCourierIdAndAwardForContract(
+                        courierId
+                        , GlobalConstant.AWARD_FOR_CONTRACT
+                ).orElse(0);
+        courierDto.setEarnings(earnings);
+
+        return courierDto;
     }
 
     private Courier addNewCourier(CourierDto courierDto) throws Exception {

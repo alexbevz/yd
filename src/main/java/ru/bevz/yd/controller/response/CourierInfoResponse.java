@@ -1,6 +1,7 @@
 package ru.bevz.yd.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -26,9 +27,11 @@ public class CourierInfoResponse {
     private List<String> workingHours;
 
     @JsonProperty("rating")
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private float rating;
 
     @JsonProperty("earnings")
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private float earnings;
 
 }

@@ -1,0 +1,8 @@
+
+
+CREATE FUNCTION to_seconds(t time)
+    RETURNS integer
+    LANGUAGE plpgsql STRICT IMMUTABLE AS
+'BEGIN
+    RETURN (EXTRACT (HOUR FROM  t) * 60 * 60 + EXTRACT (MINUTES FROM t) * 60 + EXTRACT (SECONDS from t));
+END';

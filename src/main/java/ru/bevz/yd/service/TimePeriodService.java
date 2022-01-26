@@ -15,7 +15,7 @@ public class TimePeriodService {
     @Autowired
     private TimePeriodRepository timePeriodRepository;
 
-    public TimePeriod addIfNotExistsTimePeriod(TimePeriod timePeriod) {
+    private TimePeriod addIfNotExistsTimePeriod(TimePeriod timePeriod) {
         LocalTime from = timePeriod.getFrom();
         LocalTime to = timePeriod.getTo();
 
