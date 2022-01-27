@@ -3,13 +3,13 @@ package ru.bevz.yd.controller.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import ru.bevz.yd.controller.IdListOrders;
+import ru.bevz.yd.controller.IdListContracts;
 
 @Data
 @Accessors(chain = true)
-public class OrdersBadRequestResponse {
+public class ContractsBadRequestResponse {
 
     @JsonProperty("validation_error")
-    private IdListOrders orders;
+    private IdListContracts contracts;
 
 }
