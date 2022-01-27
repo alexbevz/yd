@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import ru.bevz.yd.dto.model.ContractDto;
-import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
 import ru.bevz.yd.model.Contract;
 import ru.bevz.yd.model.Region;
@@ -26,7 +25,7 @@ public class ContractService {
     private TimePeriodService timePeriodService;
 
     @Autowired
-    protected RegionService regionService;
+    private RegionService regionService;
 
     @Transactional
     public ContractDto addNewContracts(List<ContractDto> contractDtoList) {
@@ -57,7 +56,7 @@ public class ContractService {
         int contractId = contractDto.getId();
 
         if (contractRepository.existsById(contractId)) {
-           throw new Exception();
+            throw new Exception();
         }
 
 

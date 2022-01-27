@@ -2,7 +2,6 @@ package ru.bevz.yd.dto.mapper;
 
 import org.springframework.stereotype.Component;
 import ru.bevz.yd.controller.request.ContractInfo;
-import ru.bevz.yd.controller.request.ContractsRequest;
 import ru.bevz.yd.dto.model.ContractDto;
 import ru.bevz.yd.model.Contract;
 import ru.bevz.yd.model.Region;
