@@ -1,5 +1,7 @@
 package ru.bevz.yd.controller.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
+@Tag(name = "Контроллер заказов", description = "Обслуживает запросы связанные с заказами")
 public class ContractController {
 
     @Autowired
@@ -34,6 +37,10 @@ public class ContractController {
     private ValidAndNotValidIdListsMapper validMapper;
 
     @PostMapping("")
+    @Operation(
+            summary = "Добавление заказов",
+            description = "Позволяет добавить новые заказы в базу данных"
+    )
     public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) {
         List<ContractDto> contractDtoList = contractsRequest.getContractInfoList()
                 .stream()
@@ -53,11 +60,19 @@ public class ContractController {
     }
 
     @PostMapping("/assign")
+    @Operation(
+            summary = "Назначение заказов",
+            description = "Позволяет назначить заказы выбранному курьеру по его характеристиками"
+    )
     public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
     @PostMapping("/complete")
+    @Operation(
+            summary = "Выполнение заказа",
+            description = "Позволяет отметить заказ выполненным для опредленного курьера"
+    )
     public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }

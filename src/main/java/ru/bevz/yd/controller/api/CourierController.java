@@ -1,5 +1,7 @@
 package ru.bevz.yd.controller.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/couriers")
+@Tag(name = "Контроллер курьеров", description = "Обслуживает запросы связанные с курьерами")
 public class CourierController {
 
     @Autowired
@@ -30,6 +33,10 @@ public class CourierController {
     private ValidAndNotValidIdListsMapper validMapper;
 
     @PostMapping("")
+    @Operation(
+            summary = "Добавление курьеров",
+            description = "Позволяет добавить новых курьеров в базу данных"
+    )
     public ResponseEntity<Object> createCouriers(@RequestBody CouriersRequest couriersRequest) {
         List<CourierDto> courierDtoList = couriersRequest.getCourierInfoList()
                 .stream()
@@ -49,6 +56,10 @@ public class CourierController {
     }
 
     @PatchMapping("/{id}")
+    @Operation(
+            summary = "Изменение курьера",
+            description = "Позволяет изменить характеристики курьера"
+    )
     public ResponseEntity<Object> patchCourier(
             @PathVariable(value = "id") int courierId
             , @RequestBody CourierInfo courierInfo
@@ -57,6 +68,10 @@ public class CourierController {
     }
 
     @GetMapping("/{id}")
+    @Operation(
+            summary = "Получение курьера",
+            description = "Позволяет получить полную информацию о курьере"
+    )
     public ResponseEntity<Object> getCourier(@PathVariable(value = "id") int courierId) throws Exception {
         CourierDto courierDto = courierService.getCourierInfoById(courierId);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(courierMapper.toCourierInfoResponse(courierDto));
