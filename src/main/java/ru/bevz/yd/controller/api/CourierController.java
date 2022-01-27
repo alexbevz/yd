@@ -33,7 +33,7 @@ public class CourierController {
     public ResponseEntity<Object> createCouriers(@RequestBody CouriersRequest couriersRequest) {
         List<CourierDto> courierDtoList = couriersRequest.getCourierInfoList()
                 .stream()
-                .map(courierInfo -> courierMapper.toCourierDto(courierInfo))
+                .map(courierMapper::toCourierDto)
                 .toList();
 
         ValidAndNotValidIdLists valid = courierService.addNewCouriers(courierDtoList);
