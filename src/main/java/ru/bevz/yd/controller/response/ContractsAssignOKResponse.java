@@ -7,9 +7,12 @@ import ru.bevz.yd.controller.IdList;
 
 @Data
 @Accessors(chain = true)
-public class OrdersCreatedResponse {
+public class ContractsAssignOKResponse {
 
-    @JsonProperty("orders")
-    private IdList orders;
+    @JsonProperty("couriers")
+    private IdList idList;
+
+    @JsonProperty("assign_time")
+    private String timeAssigned;
 
 }

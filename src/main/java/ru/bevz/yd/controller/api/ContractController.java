@@ -10,7 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.bevz.yd.controller.request.CompletedContractRequest;
 import ru.bevz.yd.controller.request.ContractsRequest;
 import ru.bevz.yd.controller.request.CourierInfo;
+import ru.bevz.yd.controller.response.ContractsBadRequestResponse;
+import ru.bevz.yd.controller.response.ContractsCreatedResponse;
+import ru.bevz.yd.dto.mapper.ContractMapper;
+import ru.bevz.yd.dto.mapper.ValidAndNotValidIdListsMapper;
+import ru.bevz.yd.dto.model.ContractDto;
+import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
 import ru.bevz.yd.service.ContractService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
@@ -19,9 +27,29 @@ public class ContractController {
     @Autowired
     private ContractService contractService;
 
+    @Autowired
+    private ContractMapper contractMapper;
+
+    @Autowired
+    private ValidAndNotValidIdListsMapper validMapper;
+
     @PostMapping("")
     public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+        List<ContractDto> contractDtoList = contractsRequest.getContractInfoList()
+                .stream()
+                .map(contractMapper::toContractDto)
+                .toList();
+
+        ValidAndNotValidIdLists valid = contractService.addNewContracts(contractDtoList).getValidLists();
+
+        if (valid.hasNotValid()) {
+            ContractsBadRequestResponse response = validMapper.toContractsBadRequestResponse(valid);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        ContractsCreatedResponse response = validMapper.toContractsCreatedResponse(valid);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/assign")
