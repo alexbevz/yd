@@ -6,9 +6,11 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import ru.bevz.yd.dto.model.ContractDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
 import ru.bevz.yd.model.Contract;
+import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.Region;
 import ru.bevz.yd.model.StatusContract;
 import ru.bevz.yd.repository.ContractRepository;
+import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
@@ -26,6 +28,9 @@ public class ContractService {
 
     @Autowired
     private RegionService regionService;
+
+    @Autowired
+    private CourierRepository courierRepository;
 
     @Transactional
     public ContractDto addNewContracts(List<ContractDto> contractDtoList) {
@@ -74,5 +79,32 @@ public class ContractService {
 
         return contractRepository.save(contract);
     }
+
+    public ContractDto assignContractsToCourierByCourierId(int courierId) {
+        ContractDto contractDto = new ContractDto();
+        Courier courier = courierRepository.getById(courierId);
+
+
+        List<Contract> contractList =
+                contractRepository.getAllByCourierAndStatus(courier, StatusContract.ASSIGNED);
+        if (!contractList.isEmpty()) {
+            contractDto.setDatetimeAssign(contractList.get(0).getDatetimeAssignment().toString());
+            contractDto.setIdContractList(contractList.stream().map(Contract::getId).toList());
+            return contractDto;
+        }
+
+        contractList = contractRepository.getAllByStatusAndRegionInAndWeightLessThanEqual(
+                StatusContract.UNASSIGNED,
+                courier.getRegionList(),
+                courier.getTypeCourier().getCapacity()
+        );
+
+
+        contractDto.setDatetimeAssign(contractList.get(0).getDatetimeAssignment().toString());
+        contractDto.setIdContractList(contractList.stream().map(Contract::getId).toList());
+
+        return contractDto;
+    }
+
 
 }

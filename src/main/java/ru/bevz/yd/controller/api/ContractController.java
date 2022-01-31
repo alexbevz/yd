@@ -65,6 +65,8 @@ public class ContractController {
             description = "Позволяет назначить заказы выбранному курьеру по его характеристиками"
     )
     public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) {
+        int idCourier = courierInfo.getId();
+        contractService.assignContractsToCourierByCourierId(idCourier);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 

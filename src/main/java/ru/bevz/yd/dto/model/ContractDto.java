@@ -17,6 +17,8 @@ public class ContractDto {
 
     private List<String> timePeriodList;
 
+    private List<Integer> idContractList;
+
     private String datetimeAssign;
 
     private String datetimeComplete;
