@@ -17,6 +17,7 @@ import ru.bevz.yd.controller.response.ContractsCreatedResponse;
 import ru.bevz.yd.dto.mapper.ContractMapper;
 import ru.bevz.yd.dto.mapper.ValidAndNotValidIdListsMapper;
 import ru.bevz.yd.dto.model.ContractDto;
+import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
 import ru.bevz.yd.service.ContractService;
 
@@ -64,8 +65,15 @@ public class ContractController {
             summary = "Назначение заказов",
             description = "Позволяет назначить заказы выбранному курьеру по его характеристиками"
     )
-    public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) throws Exception {
+        int idCourier = courierInfo.getId();
+        ContractDto contractDto = contractService.assignContracts(idCourier);
+
+        if (contractDto.getIdContractList().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(contractMapper.toContractsAssignOKResponse(contractDto));
     }
 
     @PostMapping("/complete")
