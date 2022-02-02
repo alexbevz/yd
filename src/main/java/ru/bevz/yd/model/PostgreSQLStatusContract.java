@@ -11,7 +11,15 @@ import java.sql.Types;
 public class PostgreSQLStatusContract extends EnumType<StatusContract> {
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
-        st.setObject(index, value, Types.OTHER);
+    public void nullSafeSet(
+            PreparedStatement st,
+            Object value, int index,
+            SharedSessionContractImplementor session
+    ) throws HibernateException, SQLException {
+        st.setObject(
+                index,
+                value != null ? ((StatusContract) value).name() : null,
+                Types.OTHER
+        );
     }
 }

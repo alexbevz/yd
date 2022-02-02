@@ -5,16 +5,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import ru.bevz.yd.dto.model.ContractDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
-import ru.bevz.yd.model.Contract;
-import ru.bevz.yd.model.Courier;
-import ru.bevz.yd.model.Region;
-import ru.bevz.yd.model.StatusContract;
+import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,24 +81,43 @@ public class ContractService {
         return contractRepository.save(contract);
     }
 
-    public ContractDto assignContractsToCourierByCourierId(int courierId) {
+    @Transactional
+    public ContractDto assignContracts(int courierId) throws Exception {
         ContractDto contractDto = new ContractDto();
-        Courier courier = courierRepository.getById(courierId);
+        Courier courier = courierRepository.findById(courierId).orElse(null);
+
+        if (courier == null) {
+            throw new Exception("Not exist courier with id " + courierId + "!");
+        }
 
 
         List<Contract> contractList =
                 contractRepository.getAllByCourierAndStatus(courier, StatusContract.ASSIGNED);
+
         if (!contractList.isEmpty()) {
             contractDto.setDatetimeAssign(contractList.get(0).getDatetimeAssignment().toString());
             contractDto.setIdContractList(contractList.stream().map(Contract::getId).toList());
             return contractDto;
         }
 
-        contractList = contractRepository.getAllByStatusAndRegionInAndWeightLessThanEqual(
-                StatusContract.UNASSIGNED,
-                courier.getRegionList(),
+        contractList = contractRepository.getAllForCourier(
+                courier.getRegionList().stream().map(Region::getId).toList(),
                 courier.getTypeCourier().getCapacity()
         );
+
+        contractList = getContractsWithCrossTimePeriodList(contractList, courier.getTimePeriodList());
+
+        if (contractList.isEmpty()) {
+            return contractDto;
+        }
+
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        for (Contract contract : contractList) {
+            contract.setDatetimeAssignment(dateTime);
+            contract.setStatus(StatusContract.ASSIGNED);
+            contract.setCourier(courier);
+        }
 
 
         contractDto.setDatetimeAssign(contractList.get(0).getDatetimeAssignment().toString());
@@ -107,4 +127,30 @@ public class ContractService {
     }
 
 
+    private List<Contract> getContractsWithCrossTimePeriodList(
+            List<Contract> contractList,
+            Set<TimePeriod> timePeriodList
+    ) {
+        Set<Contract> validContractList = new HashSet<>();
+
+
+        for (TimePeriod timePeriodCourier : timePeriodList) {
+            for (Contract contract : contractList) {
+                for (TimePeriod timePeriodContract : contract.getTimePeriodList()) {
+                    if (timePeriodCourier.getFrom().isBefore(timePeriodContract.getFrom())
+                            && timePeriodCourier.getTo().isAfter(timePeriodContract.getFrom())
+                            || timePeriodCourier.getFrom().isBefore(timePeriodContract.getTo())
+                            && timePeriodCourier.getTo().isAfter(timePeriodContract.getTo())
+                            || timePeriodCourier.getFrom().isAfter(timePeriodContract.getFrom())
+                            && timePeriodCourier.getTo().isBefore(timePeriodContract.getTo())
+                    ) {
+                        validContractList.add(contract);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return validContractList.stream().toList();
+    }
 }
