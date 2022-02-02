@@ -81,7 +81,7 @@ public class ContractService {
         return contractRepository.save(contract);
     }
 
-    @Transactional
+    //TODO: fix method
     public ContractDto assignContracts(int courierId) throws Exception {
         ContractDto contractDto = new ContractDto();
         Courier courier = courierRepository.findById(courierId).orElse(null);
