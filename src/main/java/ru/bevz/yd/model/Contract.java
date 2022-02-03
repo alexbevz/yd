@@ -36,19 +36,6 @@ public class Contract {
     @Column(name = "status")
     private StatusContract status;
 
-    @ManyToOne
-    @JoinColumn(name = "courier_id")
-    private Courier courier;
-
-    @Column(name = "datetime_assignment")
-    private LocalDateTime datetimeAssignment;
-
-    @Column(name = "datetime_realization")
-    private LocalDateTime datetimeRealization;
-
-    @Column(name = "datetime_realization_start")
-    private LocalDateTime datetimeRealizationStart;
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "contract_time_period"
@@ -56,5 +43,22 @@ public class Contract {
             , inverseJoinColumns = @JoinColumn(name = "time_period_id")
     )
     private Set<TimePeriod> TimePeriodList;
+
+    @Column(name = "datetime_assignment")
+    private LocalDateTime datetimeAssignment;
+
+    @ManyToOne
+    @JoinColumn(name = "courier_id")
+    private Courier courier;
+
+    @ManyToOne
+    @Column(name = "type_courier_id")
+    private TypeCourier typeCourier;
+
+    @Column(name = "datetime_realization_start")
+    private LocalDateTime datetimeRealizationStart;
+
+    @Column(name = "datetime_realization")
+    private LocalDateTime datetimeRealization;
 
 }

@@ -8,6 +8,7 @@ import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.StatusContract;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, Integer> {
@@ -33,5 +34,16 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
             List<Integer> courierIdTimePeriodList,
             float courierCapacity
     );
+
+    @Query(
+            value = "SELECT *\n" +
+                    "FROM contract\n" +
+                    "WHERE courier_id = :courierId\n" +
+                    "  AND status = 'COMPLETED'\n" +
+                    "ORDER BY datetime_realization DESC\n" +
+                    "LIMIT 1;",
+            nativeQuery = true
+    )
+    Optional<Contract> getLastCompletedContract(int courierId);
 
 }
