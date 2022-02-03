@@ -15,15 +15,23 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
     List<Contract> getAllByCourierAndStatus(Courier courier, StatusContract statusContract);
 
     @Query(
-            value = "SELECT * FROM contract " +
-                    "WHERE status = 'UNASSIGNED' " +
-                    "AND region_id IN :idRegionList " +
-                    "AND weight <= :weightContract",
+            value = "SELECT DISTINCT con.*\n" +
+                    "FROM contract con\n" +
+                    "         JOIN contract_time_period ON con.id = contract_id\n" +
+                    "         JOIN time_period contp ON contp.id = time_period_id\n" +
+                    "         JOIN time_period courtp ON courtp.id IN :courierIdTimePeriodList\n" +
+                    "WHERE con.status = 'UNASSIGNED'\n" +
+                    "  AND con.region_id IN :courierIdRegionList\n" +
+                    "  AND con.weight <= :courierCapacity\n" +
+                    "  AND (courtp.left_limit <= contp.left_limit AND contp.left_limit < courtp.right_limit\n" +
+                    "    OR courtp.left_limit < contp.right_limit AND contp.right_limit <= courtp.right_limit\n" +
+                    "    OR courtp.left_limit >= contp.left_limit AND courtp.right_limit <= contp.right_limit);",
             nativeQuery = true
     )
-    List<Contract> getAllForCourier(
-            List<Integer> idRegionList,
-            float weightContract
+    List<Contract> getContractsForAssigned(
+            List<Integer> courierIdRegionList,
+            List<Integer> courierIdTimePeriodList,
+            float courierCapacity
     );
 
 }

@@ -69,11 +69,8 @@ public class ContractController {
         int idCourier = courierInfo.getId();
         ContractDto contractDto = contractService.assignContracts(idCourier);
 
-        if (contractDto.getIdContractList().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(contractMapper.toContractsAssignOKResponse(contractDto));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(contractMapper.toContractsAssignOKResponse(contractDto));
     }
 
     @PostMapping("/complete")
@@ -82,7 +79,8 @@ public class ContractController {
             description = "Позволяет отметить заказ выполненным для опредленного курьера"
     )
     public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .build();
     }
 
 }
