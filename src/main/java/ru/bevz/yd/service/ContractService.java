@@ -12,10 +12,7 @@ import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,7 +78,7 @@ public class ContractService {
         return contractRepository.save(contract);
     }
 
-    //TODO: fix method
+    @Transactional
     public ContractDto assignContracts(int courierId) throws Exception {
         ContractDto contractDto = new ContractDto();
         Courier courier = courierRepository.findById(courierId).orElse(null);
@@ -100,12 +97,11 @@ public class ContractService {
             return contractDto;
         }
 
-        contractList = contractRepository.getAllForCourier(
+        contractList = contractRepository.getContractsForAssigned(
                 courier.getRegionList().stream().map(Region::getId).toList(),
+                courier.getTimePeriodList().stream().map(TimePeriod::getId).toList(),
                 courier.getTypeCourier().getCapacity()
         );
-
-        contractList = getContractsWithCrossTimePeriodList(contractList, courier.getTimePeriodList());
 
         if (contractList.isEmpty()) {
             return contractDto;
@@ -126,31 +122,4 @@ public class ContractService {
         return contractDto;
     }
 
-
-    private List<Contract> getContractsWithCrossTimePeriodList(
-            List<Contract> contractList,
-            Set<TimePeriod> timePeriodList
-    ) {
-        Set<Contract> validContractList = new HashSet<>();
-
-
-        for (TimePeriod timePeriodCourier : timePeriodList) {
-            for (Contract contract : contractList) {
-                for (TimePeriod timePeriodContract : contract.getTimePeriodList()) {
-                    if (timePeriodCourier.getFrom().isBefore(timePeriodContract.getFrom())
-                            && timePeriodCourier.getTo().isAfter(timePeriodContract.getFrom())
-                            || timePeriodCourier.getFrom().isBefore(timePeriodContract.getTo())
-                            && timePeriodCourier.getTo().isAfter(timePeriodContract.getTo())
-                            || timePeriodCourier.getFrom().isAfter(timePeriodContract.getFrom())
-                            && timePeriodCourier.getTo().isBefore(timePeriodContract.getTo())
-                    ) {
-                        validContractList.add(contract);
-                        break;
-                    }
-                }
-            }
-        }
-
-        return validContractList.stream().toList();
-    }
 }
