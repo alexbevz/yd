@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -13,6 +14,6 @@ public class IdList {
 
     @JsonValue
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
-    private List<Id> idList;
+    private List<Id> idList = new ArrayList<>();
 
 }
