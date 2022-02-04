@@ -20,7 +20,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/couriers")
-@Tag(name = "Контроллер курьеров", description = "Обслуживает запросы связанные с курьерами")
+@Tag(
+        name = "Контроллер курьеров",
+        description = "Обслуживает запросы связанные с курьерами"
+)
 public class CourierController {
 
     @Autowired

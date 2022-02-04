@@ -1,6 +1,10 @@
 package ru.bevz.yd.controller.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +28,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
-@Tag(name = "Контроллер заказов", description = "Обслуживает запросы связанные с заказами")
+@Tag(
+        name = "Контроллер заказов",
+        description = "Обслуживает запросы связанные с заказами"
+)
 public class ContractController {
 
     @Autowired
@@ -40,6 +47,18 @@ public class ContractController {
     @Operation(
             summary = "Добавление заказов",
             description = "Позволяет добавить новые заказы в базу данных"
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            content = @Content(schema = @Schema(implementation = ContractsCreatedResponse.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ContractsBadRequestResponse.class))
+                    )
+            }
     )
     public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) {
         List<ContractDto> contractDtoList = contractsRequest.getContractInfoList()
