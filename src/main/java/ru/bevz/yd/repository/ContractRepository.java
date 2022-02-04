@@ -7,6 +7,7 @@ import ru.bevz.yd.model.Contract;
 import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.StatusContract;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,10 +41,11 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "FROM contract\n" +
                     "WHERE courier_id = :courierId\n" +
                     "  AND status = 'COMPLETED'\n" +
+                    "  AND date(datetime_realization) = :dateRealization\n" +
                     "ORDER BY datetime_realization DESC\n" +
                     "LIMIT 1;",
             nativeQuery = true
     )
-    Optional<Contract> getLastCompletedContract(int courierId);
+    Optional<Contract> getLastCompletedContract(int courierId, LocalDate dateRealization);
 
 }

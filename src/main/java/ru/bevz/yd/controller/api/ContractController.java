@@ -17,7 +17,6 @@ import ru.bevz.yd.controller.response.ContractsCreatedResponse;
 import ru.bevz.yd.dto.mapper.ContractMapper;
 import ru.bevz.yd.dto.mapper.ValidAndNotValidIdListsMapper;
 import ru.bevz.yd.dto.model.ContractDto;
-import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
 import ru.bevz.yd.service.ContractService;
 
@@ -78,9 +77,13 @@ public class ContractController {
             summary = "Выполнение заказа",
             description = "Позволяет отметить заказ выполненным для опредленного курьера"
     )
-    public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED)
-                .build();
+    public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) throws Exception {
+        ContractDto contractDto =
+                contractService.completeContract(contractMapper.toContractDto(completedContractRequest));
+
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(contractMapper.toContractCompleteOKResponse(contractDto));
     }
 
 }

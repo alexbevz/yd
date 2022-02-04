@@ -1,7 +1,6 @@
 package ru.bevz.yd.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import ru.bevz.yd.dto.model.ContractDto;
@@ -12,11 +11,13 @@ import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.bevz.yd.util.DateTimeUtils.findTPForTime;
+import static ru.bevz.yd.util.DateTimeUtils.isTimeInTP;
 
 @Service
 public class ContractService {
@@ -74,7 +75,7 @@ public class ContractService {
                 .setTimePeriodList(timePeriodService.addIfNotExistsTimePeriods(
                         contractDto.getTimePeriodList()
                                 .stream()
-                                .map(DateTimeUtils::toTimePeriod)
+                                .map(DateTimeUtils::toTP)
                                 .collect(Collectors.toSet())))
                 .setStatus(StatusContract.UNASSIGNED);
 
@@ -125,57 +126,66 @@ public class ContractService {
         return contractDto;
     }
 
-    //TODO: fix method
     @Transactional
     public ContractDto completeContract(ContractDto contractDto) throws Exception {
         int contractId = contractDto.getId();
         int courierId = contractDto.getCourierId();
-        LocalDateTime dateTimeComplete =
+        LocalDateTime DTCompleted =
                 LocalDateTime.parse(contractDto.getDatetimeComplete());
 
         Optional<Contract> contractOptional = contractRepository.findById(contractId);
-
         if (contractOptional.isEmpty()) {
-            throw new Exception("Not exists contract with id " + contractId + "!");
+            throw new Exception("Not exists the contract with id " + contractId + "!");
         }
-
         Contract contract = contractOptional.get();
-        Optional<Courier> courierOptional = courierRepository.findById(courierId);
-
-        if (courierOptional.isPresent()
-                && contract.getStatus() == StatusContract.ASSIGNED
-                && contract.getCourier().getId() == courierId
-        ) {
-            Courier courier = courierOptional.get();
-
-            Optional<TimePeriod> timePeriodOptional = contract.getTimePeriodList()
-                    .stream()
-                    .filter(tp -> tp.getFrom().isBefore(dateTimeComplete.toLocalTime())
-                            && tp.getTo().isAfter(dateTimeComplete.toLocalTime()))
-                    .findFirst();
-
-            if (timePeriodOptional.isEmpty()) {
-                throw new Exception("Time is not valid! Has not found a time interval!");
-            }
-
-            Optional<Contract> lastContract =
-                    contractRepository.getLastCompletedContract(courierId);
-
-            LocalDateTime dateTimeRealizationStart;
-
-            if (lastContract.isEmpty()
-                    || dateTimeComplete.toLocalDate() == contract.getDatetimeRealization().toLocalDate()){
-                dateTimeRealizationStart = LocalDateTime.of();
-            } else {
-                dateTimeRealizationStart = lastContract.get().getDatetimeRealization();
-            }
-
-            contract.setDatetimeRealizationStart(dateTimeRealizationStart);
-            contract.setDatetimeRealization(LocalDateTime.now());
-            contract.setStatus(StatusContract.COMPLETED);
-            contract.setTypeCourier(courier.getTypeCourier());
-
+        if (contract.getStatus() == StatusContract.COMPLETED) {
+            throw new Exception("The contract with id " + contractId + " has already been delivered!");
         }
+
+        Optional<Courier> courierOptional = courierRepository.findById(courierId);
+        if (courierOptional.isEmpty()) {
+            throw new Exception("Not exists the courier with id " + courierId + "!");
+        }
+        Courier courier = courierOptional.get();
+
+        if (contract.getCourier().getId() != courierId) {
+            throw new Exception("The contract with id " + contractId + " is not assigned to courier with id " + courierId + "!");
+        }
+
+        Optional<TimePeriod> courierTimePeriodOptional =
+                findTPForTime(courier.getTimePeriodList(), DTCompleted);
+        if (courierTimePeriodOptional.isEmpty()) {
+            throw new Exception("Time is not valid! " +
+                    "Has not found a time interval fot courier with id " + courierId + "! "
+                    + courier.getTimePeriodList()
+                    .stream()
+                    .map(DateTimeUtils::toStringTP)
+                    .toList());
+        }
+        TimePeriod courierTP = courierTimePeriodOptional.get();
+
+        Optional<Contract> lastContractOptional =
+                contractRepository.getLastCompletedContract(courierId, DTCompleted.toLocalDate());
+
+        LocalDateTime dateTimeRealizationStart;
+
+        if (lastContractOptional.isPresent()) {
+            Contract lastContract = lastContractOptional.get();
+            if (isTimeInTP(courierTP, lastContract.getDatetimeRealization())) {
+                dateTimeRealizationStart = lastContract.getDatetimeRealization();
+            } else {
+                dateTimeRealizationStart =
+                        LocalDateTime.of(DTCompleted.toLocalDate(), courierTP.getFrom());
+            }
+        } else {
+            dateTimeRealizationStart =
+                    LocalDateTime.of(DTCompleted.toLocalDate(), courierTP.getFrom());
+        }
+
+        contract.setStatus(StatusContract.COMPLETED);
+        contract.setDatetimeRealizationStart(dateTimeRealizationStart);
+        contract.setDatetimeRealization(DTCompleted);
+        contract.setTypeCourier(courier.getTypeCourier());
 
         return contractDto;
     }
