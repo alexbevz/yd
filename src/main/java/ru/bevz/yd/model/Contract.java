@@ -52,7 +52,7 @@ public class Contract {
     private Courier courier;
 
     @ManyToOne
-    @Column(name = "type_courier_id")
+    @JoinColumn(name = "type_courier_id")
     private TypeCourier typeCourier;
 
     @Column(name = "datetime_realization_start")
