@@ -15,7 +15,7 @@
     <artifactId>yd</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Yandex delivery</name>
-    <description>Demo project is realization one part of Yandex delivery</description>
+    <description>Demo project is a realization one part of Yandex delivery</description>
 
     <developers>
         <developer>
@@ -31,6 +31,8 @@
         <liquibase.version>4.2.0</liquibase.version>
         <postgresql.version>42.3.1</postgresql.version>
         <lombok.version>1.18.22</lombok.version>
+        <swagger.version>2.1.12</swagger.version>
+        <springdoc.version>1.6.5</springdoc.version>
 
     </properties>
 
@@ -76,18 +78,16 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations -->
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.1.12</version>
+            <version>${swagger.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.5</version>
+            <version>${springdoc.version}</version>
         </dependency>
 
     </dependencies>
