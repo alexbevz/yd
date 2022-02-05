@@ -7,16 +7,15 @@ import ru.bevz.yd.constants.GlobalConstant;
 import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDto;
 import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
-import ru.bevz.yd.model.Courier;
-import ru.bevz.yd.model.Region;
-import ru.bevz.yd.model.TimePeriod;
-import ru.bevz.yd.model.TypeCourier;
+import ru.bevz.yd.model.*;
+import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,11 +23,11 @@ import java.util.stream.Collectors;
 public class CourierService {
 
     @Autowired
+    protected ContractRepository contractRepository;
+    @Autowired
     private CourierRepository courierRepository;
-
     @Autowired
     private TypeCourierRepository typeCourierRepository;
-
     @Autowired
     private RegionService regionService;
 
@@ -58,8 +57,93 @@ public class CourierService {
         return valid;
     }
 
-    public CourierDto patchCourier(CourierDto courierDto) {
-        return new CourierDto();
+    @Transactional
+    public CourierDto patchCourier(CourierDto courierDto) throws Exception {
+        int courierId = courierDto.getId();
+
+        Optional<Courier> courierOptional = courierRepository.findById(courierId);
+        if (courierOptional.isEmpty()) {
+            throw new Exception("Courier with id " + courierId + "do not exist!");
+        }
+        Courier originalCourier = courierOptional.get();
+
+        String newTypeCourierStr = courierDto.getType();
+        if (newTypeCourierStr != null) {
+            Optional<TypeCourier> newTypeCourierOptional =
+                    typeCourierRepository.findTypeCourierByName(newTypeCourierStr);
+            if (newTypeCourierOptional.isEmpty()) {
+                throw new Exception("TypeCourier with name " + newTypeCourierStr + "is not exist!");
+            }
+            TypeCourier newTypeCourier = newTypeCourierOptional.get();
+
+            if (originalCourier.getTypeCourier().getCapacity() > newTypeCourier.getCapacity()) {
+                List<Contract> contractListForRemove =
+                        contractRepository.getContractsForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
+                for (Contract contract : contractListForRemove) {
+                    contract.setStatus(StatusContract.UNASSIGNED);
+                    contract.setCourier(null);
+                    contract.setDatetimeAssignment(null);
+                }
+            }
+            originalCourier.setTypeCourier(newTypeCourier);
+        }
+
+        List<Integer> newRegionListStr = courierDto.getRegionList();
+        if (newRegionListStr != null) {
+            Set<Region> newRegionList = regionService.addIfNotExistsRegions(
+                    courierDto.getRegionList()
+                            .stream()
+                            .map(num -> new Region().setNumberRegion(num))
+                            .collect(Collectors.toSet())
+            );
+
+            if (!originalCourier.getRegionList().containsAll(newRegionList)) {
+                List<Contract> contractListForRemove =
+                        contractRepository.getContractsForRemoveByRegion(
+                                courierId,
+                                newRegionList
+                                        .stream()
+                                        .map(Region::getId)
+                                        .toList()
+                        );
+                for (Contract contract : contractListForRemove) {
+                    contract.setStatus(StatusContract.UNASSIGNED);
+                    contract.setCourier(null);
+                    contract.setDatetimeAssignment(null);
+                }
+                originalCourier.setRegionList(newRegionList);
+            }
+        }
+
+        List<String> newTimePeriodListStr = courierDto.getTimePeriodList();
+        if (newTimePeriodListStr != null) {
+            Set<TimePeriod> newTimePeriodList = timePeriodService.addIfNotExistsTimePeriods(
+                    courierDto.getTimePeriodList()
+                            .stream()
+                            .map(DateTimeUtils::toTP)
+                            .collect(Collectors.toSet())
+            );
+
+            if (!originalCourier.getTimePeriodList().containsAll(newTimePeriodList)) {
+                List<Contract> contractListForRemove =
+                        contractRepository.getContractsForRemoveByTimePeriod(
+                                courierId,
+                                newTimePeriodList
+                                        .stream()
+                                        .map(TimePeriod::getId)
+                                        .toList()
+                        );
+                for (Contract contract : contractListForRemove) {
+                    contract.setStatus(StatusContract.UNASSIGNED);
+                    contract.setCourier(null);
+                    contract.setDatetimeAssignment(null);
+                }
+                originalCourier.setTimePeriodList(newTimePeriodList);
+            }
+        }
+
+        courierDto = courierMapper.toCourierDto(originalCourier);
+        return courierDto;
     }
 
     public CourierDto getCourierInfoById(int courierId) throws Exception {

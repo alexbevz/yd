@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.bevz.yd.controller.request.CourierInfo;
+import ru.bevz.yd.controller.request.CourierPatchRequest;
 import ru.bevz.yd.controller.request.CouriersRequest;
 import ru.bevz.yd.controller.response.CouriersBadRequestResponse;
 import ru.bevz.yd.controller.response.CouriersCreatedResponse;
@@ -65,9 +65,14 @@ public class CourierController {
     )
     public ResponseEntity<Object> patchCourier(
             @PathVariable(value = "id") int courierId
-            , @RequestBody CourierInfo courierInfo
-    ) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+            , @RequestBody CourierPatchRequest courierPatchRequest
+    ) throws Exception {
+
+        CourierDto courierDto = courierMapper.toCourierDto(courierPatchRequest)
+                .setId(courierId);
+        courierDto = courierService.patchCourier(courierDto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(courierMapper.toCourierInfoResponse(courierDto));
     }
 
     @GetMapping("/{id}")

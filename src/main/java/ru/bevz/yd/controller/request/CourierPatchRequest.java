@@ -10,7 +10,7 @@ import java.util.List;
 public class CourierPatchRequest {
 
     @JsonProperty("courier_type")
-    private String CourierType;
+    private String courierType;
 
     @JsonProperty("regions")
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
