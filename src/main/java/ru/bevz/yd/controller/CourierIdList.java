@@ -6,9 +6,9 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class IdListContracts {
+public class CourierIdList {
 
-    @JsonProperty("orders")
-    private IdList idOrders;
+    @JsonProperty("couriers")
+    private IdList idCouriers;
 
 }

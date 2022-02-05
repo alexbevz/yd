@@ -2,11 +2,9 @@ package ru.bevz.yd.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import ru.bevz.yd.constants.GlobalConstant;
 import ru.bevz.yd.dto.mapper.CourierMapper;
-import ru.bevz.yd.dto.model.CourierDto;
-import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
+import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
@@ -14,6 +12,7 @@ import ru.bevz.yd.repository.TypeCourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,11 +22,14 @@ import java.util.stream.Collectors;
 public class CourierService {
 
     @Autowired
-    protected ContractRepository contractRepository;
+    private ContractRepository contractRepository;
+
     @Autowired
     private CourierRepository courierRepository;
+
     @Autowired
     private TypeCourierRepository typeCourierRepository;
+
     @Autowired
     private RegionService regionService;
 
@@ -37,29 +39,92 @@ public class CourierService {
     @Autowired
     private CourierMapper courierMapper;
 
-    @Transactional
-    public ValidAndNotValidIdLists addNewCouriers(List<CourierDto> courierDtoList) {
-        ValidAndNotValidIdLists valid = new ValidAndNotValidIdLists();
+    private float getEarningsCourier(int courierId) {
+        float earnings = courierRepository.getEarningsByCourierIdAndAwardForContract(
+                courierId,
+                GlobalConstant.AWARD_FOR_CONTRACT
+        ).orElse(0);
+        return earnings;
+    }
 
-        for (CourierDto courierDto : courierDtoList) {
-            try {
-                Courier courier = addNewCourier(courierDto);
-                valid.addValidId(courier.getId());
-            } catch (Exception e) {
-                valid.addNotValidId(courierDto.getId());
-            }
-        }
-
-        if (valid.hasNotValid()) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-        }
-
-        return valid;
+    private float getRatingCourier(int courierId) {
+        int hs = 60 * 60;
+        int t = courierRepository.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
+        float rating = (float) (hs - Math.min(t, hs)) / hs * 5;
+        return rating;
     }
 
     @Transactional
-    public CourierDto patchCourier(CourierDto courierDto) throws Exception {
-        int courierId = courierDto.getId();
+    public CourierDTO addNewCouriers(List<CourierDTO> courierDTOs) throws Exception {
+
+        List<Integer> courierIdsNotValid = new ArrayList<>();
+
+        for (CourierDTO courierDto : courierDTOs) {
+            try {
+                addNewCourier(courierDto);
+            } catch (Exception e) {
+                courierIdsNotValid.add(courierDto.getId());
+            }
+        }
+
+        if (!courierIdsNotValid.isEmpty()) {
+            throw new Exception();
+        }
+
+        CourierDTO courierDTO = new CourierDTO()
+                .setIdCouriers(
+                        courierDTOs
+                                .stream()
+                                .map(CourierDTO::getId)
+                                .toList()
+                );
+
+        return courierDTO;
+    }
+
+    @Transactional
+    public CourierDTO addNewCourier(CourierDTO courierDTO) throws Exception {
+        int courierId = courierDTO.getId();
+        String nameType = courierDTO.getType();
+
+        if (courierRepository.existsById(courierId)) {
+            throw new Exception("Courier with id " + courierId + " exists!");
+        }
+
+        Optional<TypeCourier> typeCourierOptional =
+                typeCourierRepository.findTypeCourierByName(nameType);
+        if (typeCourierOptional.isEmpty()) {
+            throw new Exception("TypeCourier with name " + nameType + "does not exist");
+        }
+
+        Courier courier = new Courier();
+        courier.setId(courierId);
+
+        TypeCourier typeCourier = typeCourierOptional.get();
+        courier.setTypeCourier(typeCourier);
+
+        Set<Region> regions = regionService.addIfNotExistsRegions(
+                courierDTO.getRegions()
+                        .stream()
+                        .map(num -> new Region().setNumber(num))
+                        .collect(Collectors.toSet())
+        );
+        courier.setRegions(regions);
+
+        Set<TimePeriod> timePeriods = timePeriodService.addIfNotExistsTimePeriods(
+                courierDTO.getTimePeriods()
+                        .stream()
+                        .map(DateTimeUtils::toTP)
+                        .collect(Collectors.toSet())
+        );
+        courier.setTimePeriods(timePeriods);
+
+        return courierMapper.toCourierDto(courierRepository.save(courier));
+    }
+
+    @Transactional
+    public CourierDTO patchCourier(CourierDTO courierDTO) throws Exception {
+        int courierId = courierDTO.getId();
 
         Optional<Courier> courierOptional = courierRepository.findById(courierId);
         if (courierOptional.isEmpty()) {
@@ -67,7 +132,7 @@ public class CourierService {
         }
         Courier originalCourier = courierOptional.get();
 
-        String newTypeCourierStr = courierDto.getType();
+        String newTypeCourierStr = courierDTO.getType();
         if (newTypeCourierStr != null) {
             Optional<TypeCourier> newTypeCourierOptional =
                     typeCourierRepository.findTypeCourierByName(newTypeCourierStr);
@@ -77,9 +142,9 @@ public class CourierService {
             TypeCourier newTypeCourier = newTypeCourierOptional.get();
 
             if (originalCourier.getTypeCourier().getCapacity() > newTypeCourier.getCapacity()) {
-                List<Contract> contractListForRemove =
+                List<Contract> contractsForRemove =
                         contractRepository.getContractsForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
-                for (Contract contract : contractListForRemove) {
+                for (Contract contract : contractsForRemove) {
                     contract.setStatus(StatusContract.UNASSIGNED);
                     contract.setCourier(null);
                     contract.setDatetimeAssignment(null);
@@ -88,20 +153,20 @@ public class CourierService {
             originalCourier.setTypeCourier(newTypeCourier);
         }
 
-        List<Integer> newRegionListStr = courierDto.getRegionList();
+        List<Integer> newRegionListStr = courierDTO.getRegions();
         if (newRegionListStr != null) {
-            Set<Region> newRegionList = regionService.addIfNotExistsRegions(
-                    courierDto.getRegionList()
+            Set<Region> newRegions = regionService.addIfNotExistsRegions(
+                    courierDTO.getRegions()
                             .stream()
-                            .map(num -> new Region().setNumberRegion(num))
+                            .map(num -> new Region().setNumber(num))
                             .collect(Collectors.toSet())
             );
 
-            if (!originalCourier.getRegionList().containsAll(newRegionList)) {
+            if (!originalCourier.getRegions().containsAll(newRegions)) {
                 List<Contract> contractListForRemove =
                         contractRepository.getContractsForRemoveByRegion(
                                 courierId,
-                                newRegionList
+                                newRegions
                                         .stream()
                                         .map(Region::getId)
                                         .toList()
@@ -111,94 +176,55 @@ public class CourierService {
                     contract.setCourier(null);
                     contract.setDatetimeAssignment(null);
                 }
-                originalCourier.setRegionList(newRegionList);
+                originalCourier.setRegions(newRegions);
             }
         }
 
-        List<String> newTimePeriodListStr = courierDto.getTimePeriodList();
+        List<String> newTimePeriodListStr = courierDTO.getTimePeriods();
         if (newTimePeriodListStr != null) {
-            Set<TimePeriod> newTimePeriodList = timePeriodService.addIfNotExistsTimePeriods(
-                    courierDto.getTimePeriodList()
+            Set<TimePeriod> newTimePeriods = timePeriodService.addIfNotExistsTimePeriods(
+                    courierDTO.getTimePeriods()
                             .stream()
                             .map(DateTimeUtils::toTP)
                             .collect(Collectors.toSet())
             );
 
-            if (!originalCourier.getTimePeriodList().containsAll(newTimePeriodList)) {
-                List<Contract> contractListForRemove =
+            if (!originalCourier.getTimePeriods().containsAll(newTimePeriods)) {
+                List<Contract> contractsForRemove =
                         contractRepository.getContractsForRemoveByTimePeriod(
                                 courierId,
-                                newTimePeriodList
+                                newTimePeriods
                                         .stream()
                                         .map(TimePeriod::getId)
                                         .toList()
                         );
-                for (Contract contract : contractListForRemove) {
+                for (Contract contract : contractsForRemove) {
                     contract.setStatus(StatusContract.UNASSIGNED);
                     contract.setCourier(null);
                     contract.setDatetimeAssignment(null);
                 }
-                originalCourier.setTimePeriodList(newTimePeriodList);
+                originalCourier.setTimePeriods(newTimePeriods);
             }
         }
 
-        courierDto = courierMapper.toCourierDto(originalCourier);
-        return courierDto;
+        courierDTO = courierMapper.toCourierDto(originalCourier);
+        return courierDTO;
     }
 
-    public CourierDto getCourierInfoById(int courierId) throws Exception {
+    public CourierDTO getCourierInfoById(CourierDTO courierDTO) throws Exception {
+        int courierId = courierDTO.getId();
 
-        if (!courierRepository.existsById(courierId)) {
+        Optional<Courier> courierOptional = courierRepository.findById(courierId);
+
+        if (courierOptional.isEmpty()) {
             throw new Exception("Courier does not exists with ID " + courierId);
         }
 
-        CourierDto courierDto = courierMapper.toCourierDto(courierRepository.getById(courierId));
+        courierDTO = courierMapper.toCourierDto(courierOptional.get());
+        courierDTO.setRating(getRatingCourier(courierId));
+        courierDTO.setEarnings(getEarningsCourier(courierId));
 
-        int hs = 60 * 60;
-        int t = courierRepository.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
-        float rating = (float) (hs - Math.min(t, hs)) / hs * 5;
-        courierDto.setRating(rating);
-
-        float earnings =
-                courierRepository.getEarningsByCourierIdAndAwardForContract(
-                        courierId
-                        , GlobalConstant.AWARD_FOR_CONTRACT
-                ).orElse(0);
-        courierDto.setEarnings(earnings);
-
-        return courierDto;
-    }
-
-    private Courier addNewCourier(CourierDto courierDto) throws Exception {
-
-        int courierId = courierDto.getId();
-        String nameType = courierDto.getType();
-
-        if (!typeCourierRepository.existsByName(nameType) || courierRepository.existsById(courierId)) {
-            throw new Exception();
-        }
-
-        Courier courier = new Courier();
-        courier.setId(courierId);
-
-        TypeCourier typeCourier = typeCourierRepository.getTypeCourierByName(nameType);
-        courier.setTypeCourier(typeCourier);
-
-        Set<Region> regions = regionService.addIfNotExistsRegions(
-                courierDto.getRegionList()
-                        .stream()
-                        .map(num -> new Region().setNumberRegion(num))
-                        .collect(Collectors.toSet()));
-        courier.setRegionList(regions);
-
-        Set<TimePeriod> timePeriods = timePeriodService.addIfNotExistsTimePeriods(
-                courierDto.getTimePeriodList()
-                        .stream()
-                        .map(DateTimeUtils::toTP)
-                        .collect(Collectors.toSet()));
-        courier.setTimePeriodList(timePeriods);
-
-        return courierRepository.save(courier);
+        return courierDTO;
     }
 
 }

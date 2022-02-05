@@ -38,11 +38,11 @@ public class Contract {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "contract_time_period"
-            , joinColumns = @JoinColumn(name = "contract_id")
-            , inverseJoinColumns = @JoinColumn(name = "time_period_id")
+            name = "contract_time_period",
+            joinColumns = @JoinColumn(name = "contract_id"),
+            inverseJoinColumns = @JoinColumn(name = "time_period_id")
     )
-    private Set<TimePeriod> TimePeriodList;
+    private Set<TimePeriod> TimePeriods;
 
     @Column(name = "datetime_assignment")
     private LocalDateTime datetimeAssignment;

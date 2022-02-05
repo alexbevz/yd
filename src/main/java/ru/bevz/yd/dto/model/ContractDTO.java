@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class ContractDto {
+public class ContractDTO {
 
     private int id;
 
@@ -16,16 +16,14 @@ public class ContractDto {
 
     private int region;
 
-    private List<String> timePeriodList = new ArrayList<>();
+    private List<String> timePeriods = new ArrayList<>();
 
-    private List<Integer> idContractList = new ArrayList<>();
+    private List<Integer> idContracts = new ArrayList<>();
 
     private String datetimeAssign;
 
     private String datetimeComplete;
 
     private int courierId;
-
-    private ValidAndNotValidIdLists validLists = new ValidAndNotValidIdLists();
 
 }

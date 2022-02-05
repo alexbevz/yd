@@ -14,6 +14,6 @@ public class ContractsRequest {
             required = true,
             description = "Список заказов"
     )
-    private List<ContractInfo> contractInfoList;
+    private List<ContractInfo> contractInfos;
 
 }

@@ -7,8 +7,8 @@ import ru.bevz.yd.model.Region;
 @Repository
 public interface RegionRepository extends JpaRepository<Region, Integer> {
 
-    boolean existsRegionsByNumberRegion(int number);
+    boolean existsRegionsByNumber(int number);
 
-    Region getRegionByNumberRegion(int number);
+    Region getRegionByNumber(int number);
 
 }

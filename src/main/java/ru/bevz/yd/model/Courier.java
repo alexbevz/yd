@@ -26,18 +26,18 @@ public class Courier {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "courier_time_period"
-            , joinColumns = @JoinColumn(name = "courier_id")
-            , inverseJoinColumns = @JoinColumn(name = "time_period_id")
+            name = "courier_time_period",
+            joinColumns = @JoinColumn(name = "courier_id"),
+            inverseJoinColumns = @JoinColumn(name = "time_period_id")
     )
-    private Set<TimePeriod> timePeriodList;
+    private Set<TimePeriod> timePeriods;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "courier_region"
-            , joinColumns = @JoinColumn(name = "courier_id")
-            , inverseJoinColumns = @JoinColumn(name = "region_id")
+            name = "courier_region",
+            joinColumns = @JoinColumn(name = "courier_id"),
+            inverseJoinColumns = @JoinColumn(name = "region_id")
     )
-    private Set<Region> regionList;
+    private Set<Region> regions;
 
 }

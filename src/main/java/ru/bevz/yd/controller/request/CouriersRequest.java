@@ -9,6 +9,6 @@ import java.util.List;
 public class CouriersRequest {
 
     @JsonProperty("data")
-    private List<CourierInfo> courierInfoList;
+    private List<CourierInfo> courierInfos;
 
 }

@@ -11,7 +11,7 @@ import ru.bevz.yd.controller.IdList;
 public class ContractsAssignOKResponse {
 
     @JsonProperty("contracts")
-    private IdList idList;
+    private IdList idContracts;
 
     @JsonProperty("assign_time")
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)

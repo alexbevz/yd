@@ -21,6 +21,6 @@ public class Region {
     private int id;
 
     @Column(name = "number_region")
-    private int numberRegion;
+    private int number;
 
 }

@@ -12,16 +12,15 @@ import java.util.stream.Collectors;
 public class RegionService {
 
     @Autowired
-    private RegionRepository regionRepository;
-
+    private RegionRepository regionRep;
 
     public Region addIfNotExistsRegion(Region region) {
-        int numberRegion = region.getNumberRegion();
+        int number = region.getNumber();
 
-        if (regionRepository.existsRegionsByNumberRegion(numberRegion)) {
-            region = regionRepository.getRegionByNumberRegion(numberRegion);
+        if (regionRep.existsRegionsByNumber(number)) {
+            region = regionRep.getRegionByNumber(number);
         } else {
-            region = regionRepository.save(region);
+            region = regionRep.save(region);
         }
 
         return region;
@@ -33,4 +32,5 @@ public class RegionService {
                 .map(this::addIfNotExistsRegion)
                 .collect(Collectors.toSet());
     }
+
 }

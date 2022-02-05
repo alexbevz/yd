@@ -8,12 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.bevz.yd.controller.request.CourierPatchRequest;
 import ru.bevz.yd.controller.request.CouriersRequest;
-import ru.bevz.yd.controller.response.CouriersBadRequestResponse;
+import ru.bevz.yd.controller.response.CourierInfoResponse;
 import ru.bevz.yd.controller.response.CouriersCreatedResponse;
 import ru.bevz.yd.dto.mapper.CourierMapper;
-import ru.bevz.yd.dto.mapper.ValidAndNotValidIdListsMapper;
-import ru.bevz.yd.dto.model.CourierDto;
-import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
+import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.service.CourierService;
 
 import java.util.List;
@@ -32,28 +30,23 @@ public class CourierController {
     @Autowired
     private CourierMapper courierMapper;
 
-    @Autowired
-    private ValidAndNotValidIdListsMapper validMapper;
-
     @PostMapping("")
     @Operation(
             summary = "Добавление курьеров",
             description = "Позволяет добавить новых курьеров в базу данных"
     )
-    public ResponseEntity<Object> createCouriers(@RequestBody CouriersRequest couriersRequest) {
-        List<CourierDto> courierDtoList = couriersRequest.getCourierInfoList()
+    public ResponseEntity<Object> createCouriers(
+            @RequestBody CouriersRequest couriersRequest
+    ) throws Exception {
+
+        List<CourierDTO> courierDTOList = couriersRequest.getCourierInfos()
                 .stream()
                 .map(courierMapper::toCourierDto)
                 .toList();
 
-        ValidAndNotValidIdLists valid = courierService.addNewCouriers(courierDtoList);
+        CourierDTO courierDTO = courierService.addNewCouriers(courierDTOList);
 
-        if (valid.hasNotValid()) {
-            CouriersBadRequestResponse response = validMapper.toCouriersBadRequestResponse(valid);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-
-        CouriersCreatedResponse response = validMapper.toCouriersCreatedResponse(valid);
+        CouriersCreatedResponse response = courierMapper.toCouriersCreatedResponse(courierDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -64,15 +57,18 @@ public class CourierController {
             description = "Позволяет изменить характеристики курьера"
     )
     public ResponseEntity<Object> patchCourier(
-            @PathVariable(value = "id") int courierId
-            , @RequestBody CourierPatchRequest courierPatchRequest
+            @PathVariable(value = "id") int courierId,
+            @RequestBody CourierPatchRequest courierPatchRequest
     ) throws Exception {
 
-        CourierDto courierDto = courierMapper.toCourierDto(courierPatchRequest)
+        CourierDTO courierDto = courierMapper.toCourierDto(courierPatchRequest)
                 .setId(courierId);
+
         courierDto = courierService.patchCourier(courierDto);
 
-        return ResponseEntity.status(HttpStatus.OK).body(courierMapper.toCourierInfoResponse(courierDto));
+        CourierInfoResponse response = courierMapper.toCourierInfoResponse(courierDto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/{id}")
@@ -80,9 +76,17 @@ public class CourierController {
             summary = "Получение курьера",
             description = "Позволяет получить полную информацию о курьере"
     )
-    public ResponseEntity<Object> getCourier(@PathVariable(value = "id") int courierId) throws Exception {
-        CourierDto courierDto = courierService.getCourierInfoById(courierId);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(courierMapper.toCourierInfoResponse(courierDto));
+    public ResponseEntity<Object> getCourier(
+            @PathVariable(value = "id") int courierId
+    ) throws Exception {
+
+        CourierDTO courierDTO = new CourierDTO().setId(courierId);
+
+        courierDTO = courierService.getCourierInfoById(courierDTO);
+
+        CourierInfoResponse response = courierMapper.toCourierInfoResponse(courierDTO);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
 }

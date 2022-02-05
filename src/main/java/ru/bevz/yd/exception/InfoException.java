@@ -9,6 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class InfoException {
 
-    String information;
+    String validation_error;
 
 }
