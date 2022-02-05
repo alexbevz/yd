@@ -13,7 +13,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleAnyException(Exception exception) {
 
         InfoException infoException = new InfoException();
-        infoException.setInformation(exception.getMessage());
+        infoException.setValidation_error(exception.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(infoException);
     }

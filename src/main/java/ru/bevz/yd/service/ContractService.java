@@ -2,9 +2,11 @@ package ru.bevz.yd.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import ru.bevz.yd.dto.model.ContractDto;
-import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
+import ru.bevz.yd.controller.Id;
+import ru.bevz.yd.controller.IdList;
+import ru.bevz.yd.controller.CourierIdList;
+import ru.bevz.yd.dto.mapper.ContractMapper;
+import ru.bevz.yd.dto.model.ContractDTO;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
@@ -12,6 +14,7 @@ import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,7 +26,10 @@ import static ru.bevz.yd.util.DateTimeUtils.isTimeInTP;
 public class ContractService {
 
     @Autowired
-    private ContractRepository contractRepository;
+    private ContractRepository contractRep;
+
+    @Autowired
+    private CourierRepository courierRep;
 
     @Autowired
     private TimePeriodService timePeriodService;
@@ -32,108 +38,123 @@ public class ContractService {
     private RegionService regionService;
 
     @Autowired
-    private CourierRepository courierRepository;
+    private ContractMapper contractMapper;
 
     @Transactional
-    public ContractDto addNewContracts(List<ContractDto> contractDtoList) {
+    public ContractDTO addContracts(List<ContractDTO> contractDTOs) throws Exception {
 
-        ValidAndNotValidIdLists validLists = new ValidAndNotValidIdLists();
+        List<Integer> contractIdsNotValid = new ArrayList<>();
 
-        for (ContractDto contractDto : contractDtoList) {
+        for (ContractDTO contractDto : contractDTOs) {
             try {
-                Contract contract = addNewContract(contractDto);
-                validLists.addValidId(contract.getId());
+                addNewContract(contractDto);
             } catch (Exception e) {
-                validLists.addNotValidId(contractDto.getId());
+                contractIdsNotValid.add(contractDto.getId());
             }
         }
 
-        ContractDto contractDto = new ContractDto()
-                .setValidLists(validLists);
-
-        if (contractDto.getValidLists().hasNotValid()) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        if (!contractIdsNotValid.isEmpty()) {
+            throw new Exception(
+                    new CourierIdList()
+                            .setIdCouriers(
+                                    new IdList().setIdList(
+                                            contractIdsNotValid
+                                                    .stream()
+                                                    .map(id -> new Id().setId(id))
+                                                    .toList()
+                                    )
+                            )
+                            .toString()
+            );
         }
+        ContractDTO contractDTO = new ContractDTO().setIdContracts(
+                contractDTOs
+                        .stream()
+                        .map(ContractDTO::getId)
+                        .toList()
+        );
 
-        return contractDto;
+        return contractDTO;
     }
 
-    private Contract addNewContract(ContractDto contractDto) throws Exception {
+    @Transactional
+    public ContractDTO addNewContract(ContractDTO contractDTO) throws Exception {
 
-        int contractId = contractDto.getId();
+        int contractId = contractDTO.getId();
 
-        if (contractRepository.existsById(contractId)) {
+        if (contractRep.existsById(contractId)) {
             throw new Exception();
         }
 
 
-        Contract contract = new Contract()
-                .setId(contractId)
-                .setWeight(contractDto.getWeight())
-                .setRegion(regionService.addIfNotExistsRegion(new Region()
-                        .setNumberRegion(contractDto.getRegion())))
-                .setTimePeriodList(timePeriodService.addIfNotExistsTimePeriods(
-                        contractDto.getTimePeriodList()
-                                .stream()
-                                .map(DateTimeUtils::toTP)
-                                .collect(Collectors.toSet())))
-                .setStatus(StatusContract.UNASSIGNED);
+        Contract contract = new Contract();
+        contract.setId(contractId);
+        contract.setWeight(contractDTO.getWeight());
+        contract.setRegion(regionService.addIfNotExistsRegion(new Region()
+                .setNumber(contractDTO.getRegion())));
+        contract.setTimePeriods(timePeriodService.addIfNotExistsTimePeriods(
+                contractDTO.getTimePeriods()
+                        .stream()
+                        .map(DateTimeUtils::toTP)
+                        .collect(Collectors.toSet())));
+        contract.setStatus(StatusContract.UNASSIGNED);
 
-        return contractRepository.save(contract);
+        return contractMapper.toContractDTO(contractRep.save(contract));
     }
 
     @Transactional
-    public ContractDto assignContracts(int courierId) throws Exception {
-        ContractDto contractDto = new ContractDto();
-        Courier courier = courierRepository.findById(courierId).orElse(null);
+    public ContractDTO assignContracts(ContractDTO contractDTO) throws Exception {
+        int courierId = contractDTO.getCourierId();
+
+        contractDTO = new ContractDTO();
+        Courier courier = courierRep.findById(courierId).orElse(null);
 
         if (courier == null) {
             throw new Exception("Not exist courier with id " + courierId + "!");
         }
 
 
-        List<Contract> contractList =
-                contractRepository.getAllByCourierAndStatus(courier, StatusContract.ASSIGNED);
+        List<Contract> contracts =
+                contractRep.getAllByCourierAndStatus(courier, StatusContract.ASSIGNED);
 
-        if (!contractList.isEmpty()) {
-            contractDto.setDatetimeAssign(contractList.get(0).getDatetimeAssignment().toString());
-            contractDto.setIdContractList(contractList.stream().map(Contract::getId).toList());
-            return contractDto;
+        if (!contracts.isEmpty()) {
+            contractDTO.setDatetimeAssign(contracts.get(0).getDatetimeAssignment().toString());
+            contractDTO.setIdContracts(contracts.stream().map(Contract::getId).toList());
+            return contractDTO;
         }
 
-        contractList = contractRepository.getContractsForAssigned(
-                courier.getRegionList().stream().map(Region::getId).toList(),
-                courier.getTimePeriodList().stream().map(TimePeriod::getId).toList(),
+        contracts = contractRep.getContractsForAssigned(
+                courier.getRegions().stream().map(Region::getId).toList(),
+                courier.getTimePeriods().stream().map(TimePeriod::getId).toList(),
                 courier.getTypeCourier().getCapacity()
         );
 
-        if (contractList.isEmpty()) {
-            return contractDto;
+        if (contracts.isEmpty()) {
+            return contractDTO;
         }
 
         LocalDateTime dateTime = LocalDateTime.now();
 
-        for (Contract contract : contractList) {
+        for (Contract contract : contracts) {
             contract.setDatetimeAssignment(dateTime);
             contract.setStatus(StatusContract.ASSIGNED);
             contract.setCourier(courier);
         }
 
+        contractDTO.setDatetimeAssign(contracts.get(0).getDatetimeAssignment().toString());
+        contractDTO.setIdContracts(contracts.stream().map(Contract::getId).toList());
 
-        contractDto.setDatetimeAssign(contractList.get(0).getDatetimeAssignment().toString());
-        contractDto.setIdContractList(contractList.stream().map(Contract::getId).toList());
-
-        return contractDto;
+        return contractDTO;
     }
 
     @Transactional
-    public ContractDto completeContract(ContractDto contractDto) throws Exception {
-        int contractId = contractDto.getId();
-        int courierId = contractDto.getCourierId();
+    public ContractDTO completeContract(ContractDTO contractDTO) throws Exception {
+        int contractId = contractDTO.getId();
+        int courierId = contractDTO.getCourierId();
         LocalDateTime DTCompleted =
-                LocalDateTime.parse(contractDto.getDatetimeComplete());
+                LocalDateTime.parse(contractDTO.getDatetimeComplete());
 
-        Optional<Contract> contractOptional = contractRepository.findById(contractId);
+        Optional<Contract> contractOptional = contractRep.findById(contractId);
         if (contractOptional.isEmpty()) {
             throw new Exception("Not exists the contract with id " + contractId + "!");
         }
@@ -142,7 +163,7 @@ public class ContractService {
             throw new Exception("The contract with id " + contractId + " has already been delivered!");
         }
 
-        Optional<Courier> courierOptional = courierRepository.findById(courierId);
+        Optional<Courier> courierOptional = courierRep.findById(courierId);
         if (courierOptional.isEmpty()) {
             throw new Exception("Not exists the courier with id " + courierId + "!");
         }
@@ -153,11 +174,11 @@ public class ContractService {
         }
 
         Optional<TimePeriod> courierTimePeriodOptional =
-                findTPForTime(courier.getTimePeriodList(), DTCompleted);
+                findTPForTime(courier.getTimePeriods(), DTCompleted);
         if (courierTimePeriodOptional.isEmpty()) {
             throw new Exception("Time is not valid! " +
                     "Has not found a time interval fot courier with id " + courierId + "! "
-                    + courier.getTimePeriodList()
+                    + courier.getTimePeriods()
                     .stream()
                     .map(DateTimeUtils::toStringTP)
                     .toList());
@@ -165,7 +186,7 @@ public class ContractService {
         TimePeriod courierTP = courierTimePeriodOptional.get();
 
         Optional<Contract> lastContractOptional =
-                contractRepository.getLastCompletedContract(courierId, DTCompleted.toLocalDate());
+                contractRep.getLastCompletedContract(courierId, DTCompleted.toLocalDate());
 
         LocalDateTime dateTimeRealizationStart;
 
@@ -187,7 +208,7 @@ public class ContractService {
         contract.setDatetimeRealization(DTCompleted);
         contract.setTypeCourier(courier.getTypeCourier());
 
-        return contractDto;
+        return contractDTO;
     }
 
 }

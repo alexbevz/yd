@@ -13,23 +13,23 @@ import java.util.stream.Collectors;
 public class TimePeriodService {
 
     @Autowired
-    private TimePeriodRepository timePeriodRepository;
+    private TimePeriodRepository timePeriodRep;
 
-    private TimePeriod addIfNotExistsTimePeriod(TimePeriod timePeriod) {
-        LocalTime from = timePeriod.getFrom();
-        LocalTime to = timePeriod.getTo();
+    private TimePeriod addIfNotExistsTimePeriod(TimePeriod tp) {
+        LocalTime from = tp.getFrom();
+        LocalTime to = tp.getTo();
 
-        if (timePeriodRepository.existsByFromAndTo(from, to)) {
-            timePeriod = timePeriodRepository.getTimePeriodByFromAndTo(from, to);
+        if (timePeriodRep.existsByFromAndTo(from, to)) {
+            tp = timePeriodRep.getTimePeriodByFromAndTo(from, to);
         } else {
-            timePeriodRepository.save(timePeriod);
+            timePeriodRep.save(tp);
         }
 
-        return timePeriod;
+        return tp;
     }
 
-    public Set<TimePeriod> addIfNotExistsTimePeriods(Set<TimePeriod> timePeriodList) {
-        return timePeriodList
+    public Set<TimePeriod> addIfNotExistsTimePeriods(Set<TimePeriod> tps) {
+        return tps
                 .stream()
                 .map(this::addIfNotExistsTimePeriod)
                 .collect(Collectors.toSet());

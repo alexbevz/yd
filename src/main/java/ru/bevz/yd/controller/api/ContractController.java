@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,12 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.bevz.yd.controller.request.CompletedContractRequest;
 import ru.bevz.yd.controller.request.ContractsRequest;
 import ru.bevz.yd.controller.request.CourierInfo;
-import ru.bevz.yd.controller.response.ContractsBadRequestResponse;
+import ru.bevz.yd.controller.response.ContractsAssignOKResponse;
+import ru.bevz.yd.controller.response.ContractsCompleteOKResponse;
 import ru.bevz.yd.controller.response.ContractsCreatedResponse;
 import ru.bevz.yd.dto.mapper.ContractMapper;
-import ru.bevz.yd.dto.mapper.ValidAndNotValidIdListsMapper;
-import ru.bevz.yd.dto.model.ContractDto;
-import ru.bevz.yd.dto.model.ValidAndNotValidIdLists;
+import ru.bevz.yd.dto.model.ContractDTO;
 import ru.bevz.yd.service.ContractService;
 
 import java.util.List;
@@ -40,40 +38,26 @@ public class ContractController {
     @Autowired
     private ContractMapper contractMapper;
 
-    @Autowired
-    private ValidAndNotValidIdListsMapper validMapper;
-
     @PostMapping("")
     @Operation(
             summary = "Добавление заказов",
             description = "Позволяет добавить новые заказы в базу данных"
     )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(
-                            responseCode = "201",
-                            content = @Content(schema = @Schema(implementation = ContractsCreatedResponse.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            content = @Content(schema = @Schema(implementation = ContractsBadRequestResponse.class))
-                    )
-            }
+    @ApiResponse(
+            responseCode = "201",
+            content = @Content(schema = @Schema(implementation = ContractsCreatedResponse.class))
     )
-    public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) {
-        List<ContractDto> contractDtoList = contractsRequest.getContractInfoList()
+    public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) throws
+
+            Exception {
+        List<ContractDTO> contractDTOs = contractsRequest.getContractInfos()
                 .stream()
-                .map(contractMapper::toContractDto)
+                .map(contractMapper::toContractDTO)
                 .toList();
 
-        ValidAndNotValidIdLists valid = contractService.addNewContracts(contractDtoList).getValidLists();
+        ContractDTO courierDto = contractService.addContracts(contractDTOs);
 
-        if (valid.hasNotValid()) {
-            ContractsBadRequestResponse response = validMapper.toContractsBadRequestResponse(valid);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-
-        ContractsCreatedResponse response = validMapper.toContractsCreatedResponse(valid);
+        ContractsCreatedResponse response = contractMapper.toContractsCreatedResponse(courierDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -84,11 +68,14 @@ public class ContractController {
             description = "Позволяет назначить заказы выбранному курьеру по его характеристиками"
     )
     public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) throws Exception {
-        int idCourier = courierInfo.getId();
-        ContractDto contractDto = contractService.assignContracts(idCourier);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(contractMapper.toContractsAssignOKResponse(contractDto));
+        ContractDTO contractDto = new ContractDTO().setCourierId(courierInfo.getId());
+
+        contractDto = contractService.assignContracts(contractDto);
+
+        ContractsAssignOKResponse response = contractMapper.toContractsAssignOKResponse(contractDto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/complete")
@@ -97,12 +84,14 @@ public class ContractController {
             description = "Позволяет отметить заказ выполненным для опредленного курьера"
     )
     public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) throws Exception {
-        ContractDto contractDto =
-                contractService.completeContract(contractMapper.toContractDto(completedContractRequest));
 
+        ContractDTO contractDto = contractMapper.toContractDTO(completedContractRequest);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(contractMapper.toContractCompleteOKResponse(contractDto));
+        contractDto = contractService.completeContract(contractDto);
+
+        ContractsCompleteOKResponse response = contractMapper.toContractCompleteOKResponse(contractDto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

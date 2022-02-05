@@ -1,14 +1,15 @@
 package ru.bevz.yd.dto.mapper;
 
 import org.springframework.stereotype.Component;
+import ru.bevz.yd.controller.Id;
+import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.controller.request.CourierInfo;
 import ru.bevz.yd.controller.request.CourierPatchRequest;
-import ru.bevz.yd.controller.response.CourierIdOKResponse;
 import ru.bevz.yd.controller.response.CourierInfoResponse;
-import ru.bevz.yd.dto.model.CourierDto;
+import ru.bevz.yd.controller.response.CouriersCreatedResponse;
+import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.Region;
-import ru.bevz.yd.model.TypeCourier;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import java.util.stream.Collectors;
@@ -16,73 +17,60 @@ import java.util.stream.Collectors;
 @Component
 public class CourierMapper {
 
-    public CourierDto toCourierDto(CourierInfo courierInfo) {
-        return new CourierDto()
+    public CourierDTO toCourierDto(CourierInfo courierInfo) {
+        return new CourierDTO()
                 .setId(courierInfo.getId())
                 .setType(courierInfo.getCourierType())
-                .setRegionList(courierInfo.getRegions())
-                .setTimePeriodList(courierInfo.getWorkingHours());
+                .setRegions(courierInfo.getRegions())
+                .setTimePeriods(courierInfo.getWorkingHours());
     }
 
-    public CourierDto toCourierDto(CourierPatchRequest courierPatchRequest) {
-        return new CourierDto()
+    public CourierDTO toCourierDto(CourierPatchRequest courierPatchRequest) {
+        return new CourierDTO()
                 .setType(courierPatchRequest.getCourierType())
-                .setRegionList(courierPatchRequest.getRegions())
-                .setTimePeriodList(courierPatchRequest.getWorkingHours());
+                .setRegions(courierPatchRequest.getRegions())
+                .setTimePeriods(courierPatchRequest.getWorkingHours());
     }
 
-    public CourierDto toCourierDto(Courier courier) {
-        return new CourierDto()
+    public CourierDTO toCourierDto(Courier courier) {
+        return new CourierDTO()
                 .setId(courier.getId())
                 .setType(courier.getTypeCourier().getName())
-                .setRegionList(courier.getRegionList()
-                        .stream()
-                        .map(Region::getNumberRegion)
-                        .collect(Collectors.toList()))
-                .setTimePeriodList(courier.getTimePeriodList()
-                        .stream()
-                        .map(DateTimeUtils::toStringTP)
-                        .collect(Collectors.toList()));
+                .setRegions(
+                        courier.getRegions()
+                                .stream()
+                                .map(Region::getNumber)
+                                .collect(Collectors.toList())
+                )
+                .setTimePeriods(
+                        courier.getTimePeriods()
+                                .stream()
+                                .map(DateTimeUtils::toStringTP)
+                                .collect(Collectors.toList())
+                );
     }
 
-    public CourierInfo toCourierInfo(CourierDto courierDto) {
-        return new CourierInfo()
-                .setId(courierDto.getId())
-                .setCourierType(courierDto.getType())
-                .setRegions(courierDto.getRegionList())
-                .setWorkingHours(courierDto.getTimePeriodList());
-    }
-
-    public CourierInfoResponse toCourierInfoResponse(CourierDto courierDto) {
+    public CourierInfoResponse toCourierInfoResponse(CourierDTO courierDTO) {
         return new CourierInfoResponse()
-                .setId(courierDto.getId())
-                .setCourierType(courierDto.getType())
-                .setRegions(courierDto.getRegionList())
-                .setWorkingHours(courierDto.getTimePeriodList())
-                .setRating(courierDto.getRating())
-                .setEarnings(courierDto.getEarnings());
+                .setId(courierDTO.getId())
+                .setCourierType(courierDTO.getType())
+                .setRegions(courierDTO.getRegions())
+                .setWorkingHours(courierDTO.getTimePeriods())
+                .setRating(courierDTO.getRating())
+                .setEarnings(courierDTO.getEarnings());
     }
 
-    public CourierIdOKResponse toCourierIdOkResponse(CourierDto courierDto) {
-        return new CourierIdOKResponse()
-                .setId(courierDto.getId())
-                .setCourierType(courierDto.getType())
-                .setRegions(courierDto.getRegionList())
-                .setWorkingHours(courierDto.getTimePeriodList());
-    }
-
-    public Courier toCourier(CourierDto courierDto) {
-        return new Courier()
-                .setId(courierDto.getId())
-                .setTypeCourier(new TypeCourier().setName(courierDto.getType()))
-                .setRegionList(courierDto.getRegionList()
-                        .stream()
-                        .map(num -> new Region().setNumberRegion(num))
-                        .collect(Collectors.toSet()))
-                .setTimePeriodList(courierDto.getTimePeriodList()
-                        .stream()
-                        .map(DateTimeUtils::toTP)
-                        .collect(Collectors.toSet()));
+    public CouriersCreatedResponse toCouriersCreatedResponse(CourierDTO courierDTO) {
+        return new CouriersCreatedResponse()
+                .setCouriers(
+                        new IdList()
+                                .setIdList(
+                                        courierDTO.getIdCouriers()
+                                                .stream()
+                                                .map(id -> new Id().setId(id))
+                                                .toList()
+                                )
+                );
     }
 
 }

@@ -1,19 +1,17 @@
 package ru.bevz.yd.util;
 
+import lombok.NoArgsConstructor;
 import ru.bevz.yd.model.TimePeriod;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
+@NoArgsConstructor
 public class DateTimeUtils {
 
-    private DateTimeUtils() {
-    }
-
     public static TimePeriod toTP(String str) {
-
-        TimePeriod timePeriod = new TimePeriod();
+        TimePeriod tp = new TimePeriod();
 
         try {
             List<LocalTime> localTimes = Arrays
@@ -21,26 +19,26 @@ public class DateTimeUtils {
                     .map(LocalTime::parse)
                     .toList();
 
-            timePeriod.setFrom(localTimes.get(0));
-            timePeriod.setTo(localTimes.get(1));
+            tp.setFrom(localTimes.get(0));
+            tp.setTo(localTimes.get(1));
 
-            return timePeriod;
+            return tp;
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
     }
 
-    public static String toStringTP(TimePeriod timePeriod) {
-        return timePeriod.getFrom().toString() + "-" + timePeriod.getTo();
+    public static String toStringTP(TimePeriod tp) {
+        return tp.getFrom().toString() + "-" + tp.getTo();
     }
 
-    public static Optional<TimePeriod> findTPForTime(Set<TimePeriod> timePeriodList, LocalDateTime time) {
-        return findTPForTime(timePeriodList, time.toLocalTime());
+    public static Optional<TimePeriod> findTPForTime(Set<TimePeriod> tps, LocalDateTime time) {
+        return findTPForTime(tps, time.toLocalTime());
     }
 
-    public static Optional<TimePeriod> findTPForTime(Set<TimePeriod> timePeriodList, LocalTime time) {
-        return timePeriodList
+    public static Optional<TimePeriod> findTPForTime(Set<TimePeriod> tps, LocalTime time) {
+        return tps
                 .stream()
                 .filter(tp -> isTimeInTP(tp, time))
                 .min(Comparator.comparing(TimePeriod::getFrom));
