@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -15,6 +16,6 @@ public class IdList {
     @JsonValue
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
     @Schema(description = "Идентификатор")
-    private List<Id> idList;
+    private List<Id> idList = new ArrayList<>();
 
 }

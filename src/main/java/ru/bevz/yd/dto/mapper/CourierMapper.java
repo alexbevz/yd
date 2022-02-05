@@ -81,7 +81,7 @@ public class CourierMapper {
                         .collect(Collectors.toSet()))
                 .setTimePeriodList(courierDto.getTimePeriodList()
                         .stream()
-                        .map(DateTimeUtils::toTimePeriod)
+                        .map(DateTimeUtils::toTP)
                         .collect(Collectors.toSet()));
     }
 

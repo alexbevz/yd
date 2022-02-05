@@ -83,8 +83,12 @@ public class ContractController {
             summary = "Назначение заказов",
             description = "Позволяет назначить заказы выбранному курьеру по его характеристиками"
     )
-    public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) throws Exception {
+        int idCourier = courierInfo.getId();
+        ContractDto contractDto = contractService.assignContracts(idCourier);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(contractMapper.toContractsAssignOKResponse(contractDto));
     }
 
     @PostMapping("/complete")
@@ -92,8 +96,13 @@ public class ContractController {
             summary = "Выполнение заказа",
             description = "Позволяет отметить заказ выполненным для опредленного курьера"
     )
-    public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) throws Exception {
+        ContractDto contractDto =
+                contractService.completeContract(contractMapper.toContractDto(completedContractRequest));
+
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(contractMapper.toContractCompleteOKResponse(contractDto));
     }
 
 }

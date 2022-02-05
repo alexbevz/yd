@@ -110,7 +110,7 @@ public class CourierService {
         Set<TimePeriod> timePeriods = timePeriodService.addIfNotExistsTimePeriods(
                 courierDto.getTimePeriodList()
                         .stream()
-                        .map(DateTimeUtils::toTimePeriod)
+                        .map(DateTimeUtils::toTP)
                         .collect(Collectors.toSet()));
         courier.setTimePeriodList(timePeriods);
 
