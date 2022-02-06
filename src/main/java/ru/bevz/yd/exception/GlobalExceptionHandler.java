@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-
     @ExceptionHandler
     public ResponseEntity<Object> handleAnyException(Exception exception) {
 
@@ -17,5 +16,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(infoException);
     }
+
+    //TODO: Need to add a method for handling exception array couriers and contracts
 
 }

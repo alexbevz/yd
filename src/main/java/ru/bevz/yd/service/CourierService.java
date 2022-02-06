@@ -1,8 +1,12 @@
 package ru.bevz.yd.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.bevz.yd.constants.GlobalConstant;
+import ru.bevz.yd.controller.CourierIdList;
+import ru.bevz.yd.controller.Id;
+import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.model.*;
@@ -68,7 +72,17 @@ public class CourierService {
         }
 
         if (!courierIdsNotValid.isEmpty()) {
-            throw new Exception();
+            throw new Exception(
+                    new ObjectMapper().writeValueAsString(
+                            new CourierIdList().setIdCouriers(
+                                    new IdList().setIdList(courierIdsNotValid
+                                            .stream()
+                                            .map(id -> new Id().setId(id))
+                                            .toList()
+                                    )
+                            )
+                    )
+            );
         }
 
         CourierDTO courierDTO = new CourierDTO()

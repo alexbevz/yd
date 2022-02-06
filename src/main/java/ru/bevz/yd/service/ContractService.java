@@ -1,10 +1,11 @@
 package ru.bevz.yd.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.bevz.yd.controller.ContractIdList;
 import ru.bevz.yd.controller.Id;
 import ru.bevz.yd.controller.IdList;
-import ru.bevz.yd.controller.CourierIdList;
 import ru.bevz.yd.dto.mapper.ContractMapper;
 import ru.bevz.yd.dto.model.ContractDTO;
 import ru.bevz.yd.model.*;
@@ -55,16 +56,15 @@ public class ContractService {
 
         if (!contractIdsNotValid.isEmpty()) {
             throw new Exception(
-                    new CourierIdList()
-                            .setIdCouriers(
-                                    new IdList().setIdList(
-                                            contractIdsNotValid
-                                                    .stream()
-                                                    .map(id -> new Id().setId(id))
-                                                    .toList()
+                    new ObjectMapper().writeValueAsString(
+                            new ContractIdList().setIdContracts(
+                                    new IdList().setIdList(contractIdsNotValid
+                                            .stream()
+                                            .map(id -> new Id().setId(id))
+                                            .toList()
                                     )
                             )
-                            .toString()
+                    )
             );
         }
         ContractDTO contractDTO = new ContractDTO().setIdContracts(
