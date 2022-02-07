@@ -12,30 +12,28 @@ import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
+import ru.bevz.yd.repository.RegionRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class CourierService {
 
     @Autowired
-    private ContractRepository contractRepository;
+    private ContractRepository contractRep;
 
     @Autowired
-    private CourierRepository courierRepository;
+    private CourierRepository courierRep;
 
     @Autowired
-    private TypeCourierRepository typeCourierRepository;
+    private TypeCourierRepository typeCourierRep;
 
     @Autowired
-    private RegionService regionService;
+    private RegionRepository regionRep;
 
     @Autowired
     private TimePeriodService timePeriodService;
@@ -44,7 +42,7 @@ public class CourierService {
     private CourierMapper courierMapper;
 
     private float getEarningsCourier(int courierId) {
-        float earnings = courierRepository.getEarningsByCourierIdAndAwardForContract(
+        float earnings = courierRep.getEarningsByCourierIdAndAwardForContract(
                 courierId,
                 GlobalConstant.AWARD_FOR_CONTRACT
         ).orElse(0);
@@ -53,7 +51,7 @@ public class CourierService {
 
     private float getRatingCourier(int courierId) {
         int hs = 60 * 60;
-        int t = courierRepository.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
+        int t = courierRep.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
         float rating = (float) (hs - Math.min(t, hs)) / hs * 5;
         return rating;
     }
@@ -101,12 +99,12 @@ public class CourierService {
         int courierId = courierDTO.getId();
         String nameType = courierDTO.getType();
 
-        if (courierRepository.existsById(courierId)) {
+        if (courierRep.existsById(courierId)) {
             throw new Exception("Courier with id " + courierId + " exists!");
         }
 
         Optional<TypeCourier> typeCourierOptional =
-                typeCourierRepository.findTypeCourierByName(nameType);
+                typeCourierRep.findTypeCourierByName(nameType);
         if (typeCourierOptional.isEmpty()) {
             throw new Exception("TypeCourier with name " + nameType + "does not exist");
         }
@@ -117,12 +115,11 @@ public class CourierService {
         TypeCourier typeCourier = typeCourierOptional.get();
         courier.setTypeCourier(typeCourier);
 
-        Set<Region> regions = regionService.addIfNotExistsRegions(
-                courierDTO.getRegions()
-                        .stream()
-                        .map(num -> new Region().setNumber(num))
-                        .collect(Collectors.toSet())
-        );
+        Set<Region> regions = new HashSet<>();
+        for (int number : courierDTO.getRegions()) {
+            Optional<Region> regionOptional = regionRep.findRegionByNumber(number);
+            regions.add(regionOptional.orElse(regionRep.save(new Region().setNumber(number))));
+        }
         courier.setRegions(regions);
 
         Set<TimePeriod> timePeriods = timePeriodService.addIfNotExistsTimePeriods(
@@ -133,14 +130,14 @@ public class CourierService {
         );
         courier.setTimePeriods(timePeriods);
 
-        return courierMapper.toCourierDto(courierRepository.save(courier));
+        return courierMapper.toCourierDto(courierRep.save(courier));
     }
 
     @Transactional
     public CourierDTO patchCourier(CourierDTO courierDTO) throws Exception {
         int courierId = courierDTO.getId();
 
-        Optional<Courier> courierOptional = courierRepository.findById(courierId);
+        Optional<Courier> courierOptional = courierRep.findById(courierId);
         if (courierOptional.isEmpty()) {
             throw new Exception("Courier with id " + courierId + "do not exist!");
         }
@@ -149,7 +146,7 @@ public class CourierService {
         String newTypeCourierStr = courierDTO.getType();
         if (newTypeCourierStr != null) {
             Optional<TypeCourier> newTypeCourierOptional =
-                    typeCourierRepository.findTypeCourierByName(newTypeCourierStr);
+                    typeCourierRep.findTypeCourierByName(newTypeCourierStr);
             if (newTypeCourierOptional.isEmpty()) {
                 throw new Exception("TypeCourier with name " + newTypeCourierStr + "is not exist!");
             }
@@ -157,7 +154,7 @@ public class CourierService {
 
             if (originalCourier.getTypeCourier().getCapacity() > newTypeCourier.getCapacity()) {
                 List<Contract> contractsForRemove =
-                        contractRepository.getContractsForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
+                        contractRep.getContractsForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
                 for (Contract contract : contractsForRemove) {
                     contract.setStatus(StatusContract.UNASSIGNED);
                     contract.setCourier(null);
@@ -169,16 +166,15 @@ public class CourierService {
 
         List<Integer> newRegionListStr = courierDTO.getRegions();
         if (newRegionListStr != null) {
-            Set<Region> newRegions = regionService.addIfNotExistsRegions(
-                    courierDTO.getRegions()
-                            .stream()
-                            .map(num -> new Region().setNumber(num))
-                            .collect(Collectors.toSet())
-            );
+            Set<Region> newRegions = new HashSet<>();
+            for (int number : courierDTO.getRegions()) {
+                Optional<Region> regionOptional = regionRep.findRegionByNumber(number);
+                newRegions.add(regionOptional.orElse(regionRep.save(new Region().setNumber(number))));
+            }
 
             if (!originalCourier.getRegions().containsAll(newRegions)) {
                 List<Contract> contractListForRemove =
-                        contractRepository.getContractsForRemoveByRegion(
+                        contractRep.getContractsForRemoveByRegion(
                                 courierId,
                                 newRegions
                                         .stream()
@@ -205,7 +201,7 @@ public class CourierService {
 
             if (!originalCourier.getTimePeriods().containsAll(newTimePeriods)) {
                 List<Contract> contractsForRemove =
-                        contractRepository.getContractsForRemoveByTimePeriod(
+                        contractRep.getContractsForRemoveByTimePeriod(
                                 courierId,
                                 newTimePeriods
                                         .stream()
@@ -228,7 +224,7 @@ public class CourierService {
     public CourierDTO getCourierInfoById(CourierDTO courierDTO) throws Exception {
         int courierId = courierDTO.getId();
 
-        Optional<Courier> courierOptional = courierRepository.findById(courierId);
+        Optional<Courier> courierOptional = courierRep.findById(courierId);
 
         if (courierOptional.isEmpty()) {
             throw new Exception("Courier does not exists with ID " + courierId);

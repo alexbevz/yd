@@ -11,6 +11,7 @@ import ru.bevz.yd.dto.model.ContractDTO;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
+import ru.bevz.yd.repository.RegionRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
@@ -36,7 +37,7 @@ public class ContractService {
     private TimePeriodService timePeriodService;
 
     @Autowired
-    private RegionService regionService;
+    private RegionRepository regionRep;
 
     @Autowired
     private ContractMapper contractMapper;
@@ -86,12 +87,15 @@ public class ContractService {
             throw new Exception();
         }
 
-
         Contract contract = new Contract();
         contract.setId(contractId);
         contract.setWeight(contractDTO.getWeight());
-        contract.setRegion(regionService.addIfNotExistsRegion(new Region()
-                .setNumber(contractDTO.getRegion())));
+        contract.setRegion(
+                regionRep.findRegionByNumber(contractDTO.getRegion())
+                        .orElse(
+                                regionRep.save(new Region().setNumber(contractDTO.getRegion()))
+                        )
+        );
         contract.setTimePeriods(timePeriodService.addIfNotExistsTimePeriods(
                 contractDTO.getTimePeriods()
                         .stream()
