@@ -164,7 +164,7 @@ public class CourierService {
             originalCourier.setTypeCourier(newTypeCourier);
         }
 
-        List<Integer> newRegionListStr = courierDTO.getRegions();
+        Set<Integer> newRegionListStr = courierDTO.getRegions();
         if (newRegionListStr != null) {
             Set<Region> newRegions = new HashSet<>();
             for (int number : courierDTO.getRegions()) {
@@ -190,7 +190,7 @@ public class CourierService {
             }
         }
 
-        List<String> newTimePeriodListStr = courierDTO.getTimePeriods();
+        Set<String> newTimePeriodListStr = courierDTO.getTimePeriods();
         if (newTimePeriodListStr != null) {
             Set<TimePeriod> newTimePeriods = timePeriodService.addIfNotExistsTimePeriods(
                     courierDTO.getTimePeriods()
