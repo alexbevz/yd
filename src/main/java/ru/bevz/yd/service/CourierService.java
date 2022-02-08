@@ -41,7 +41,7 @@ public class CourierService {
     @Autowired
     private CourierMapper courierMapper;
 
-    private float getEarningsCourier(int courierId) {
+    public float getEarningsCourier(int courierId) {
         float earnings = courierRep.getEarningsByCourierIdAndAwardForContract(
                 courierId,
                 GlobalConstant.AWARD_FOR_CONTRACT
@@ -49,7 +49,7 @@ public class CourierService {
         return earnings;
     }
 
-    private float getRatingCourier(int courierId) {
+    public float getRatingCourier(int courierId) {
         int hs = 60 * 60;
         int t = courierRep.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
         float rating = (float) (hs - Math.min(t, hs)) / hs * 5;
