@@ -4,6 +4,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import ru.bevz.yd.controller.IdList;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -17,7 +21,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(infoException);
     }
 
-    //TODO: Need to add a method for handling exception array couriers and contracts
     //TODO: Need to add a classes of exception for handling invalidation data
+
+    @ExceptionHandler
+    public ResponseEntity<Object> handleNotValidObjectsException(NotValidObjectsException exception) {
+
+        InfoException infoException = new InfoException();
+        Map<String, IdList> info = new HashMap<>();
+        info.put(exception.getNameObjects(), exception.getIdList());
+        infoException.setValidation_error(info);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(infoException);
+    }
 
 }
