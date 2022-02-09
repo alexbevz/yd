@@ -12,6 +12,7 @@ import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.Region;
 import ru.bevz.yd.util.DateTimeUtils;
 
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Component
@@ -21,15 +22,15 @@ public class CourierMapper {
         return new CourierDTO()
                 .setId(courierInfo.getId())
                 .setType(courierInfo.getCourierType())
-                .setRegions(courierInfo.getRegions())
-                .setTimePeriods(courierInfo.getWorkingHours());
+                .setRegions(new HashSet<>(courierInfo.getRegions()))
+                .setTimePeriods(new HashSet<>(courierInfo.getWorkingHours()));
     }
 
     public CourierDTO toCourierDto(CourierPatchRequest courierPatchRequest) {
         return new CourierDTO()
                 .setType(courierPatchRequest.getCourierType())
-                .setRegions(courierPatchRequest.getRegions())
-                .setTimePeriods(courierPatchRequest.getWorkingHours());
+                .setRegions(new HashSet<>(courierPatchRequest.getRegions()))
+                .setTimePeriods(new HashSet<>(courierPatchRequest.getWorkingHours()));
     }
 
     public CourierDTO toCourierDto(Courier courier) {
@@ -40,13 +41,13 @@ public class CourierMapper {
                         courier.getRegions()
                                 .stream()
                                 .map(Region::getNumber)
-                                .collect(Collectors.toList())
+                                .collect(Collectors.toSet())
                 )
                 .setTimePeriods(
                         courier.getTimePeriods()
                                 .stream()
                                 .map(DateTimeUtils::toStringTP)
-                                .collect(Collectors.toList())
+                                .collect(Collectors.toSet())
                 );
     }
 
@@ -54,8 +55,8 @@ public class CourierMapper {
         return new CourierInfoResponse()
                 .setId(courierDTO.getId())
                 .setCourierType(courierDTO.getType())
-                .setRegions(courierDTO.getRegions())
-                .setWorkingHours(courierDTO.getTimePeriods())
+                .setRegions(courierDTO.getRegions().stream().toList())
+                .setWorkingHours(courierDTO.getTimePeriods().stream().toList())
                 .setRating(courierDTO.getRating())
                 .setEarnings(courierDTO.getEarnings());
     }

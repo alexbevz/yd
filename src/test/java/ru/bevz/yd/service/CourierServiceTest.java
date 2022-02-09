@@ -6,18 +6,19 @@ import io.zonky.test.db.postgres.embedded.LiquibasePreparer;
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
 import io.zonky.test.db.postgres.junit.PreparedDbRule;
 import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.CsvFileSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import ru.bevz.yd.YandexDeliveryApplication;
-
-import java.util.stream.Stream;
+import ru.bevz.yd.annotation.CSVToCourierDTOForCSV;
+import ru.bevz.yd.dto.model.CourierDTO;
+import ru.bevz.yd.pojo.CourierDTOForCSV;
 
 
 @AutoConfigureEmbeddedDatabase(
@@ -43,19 +44,22 @@ public class CourierServiceTest {
             EmbeddedPostgresRules.preparedDatabase(
                     LiquibasePreparer.forClasspathLocation("/test-db/changelog-master-test.xml"));
 
-    private static Stream<Arguments> provideDataForGetEarningsCourierTestWithoutExceptions() {
-        return Stream.of(
-                Arguments.of(0, 1),
-                Arguments.of(0, 2)
-        );
-    }
-
     @ParameterizedTest
-    @MethodSource("provideDataForGetEarningsCourierTestWithoutExceptions")
-    public void getEarningsCourierTestWithoutExceptions(float expected, int courierId) {
+    @CsvFileSource(
+            resources = {"/test-db/data-courier-test/add-new-courier-test.csv"},
+            numLinesToSkip = 1
+    )
+    public void addNewCourierTestNoExceptions(@CSVToCourierDTOForCSV CourierDTOForCSV courierDTOForCsv) {
 
-        float result = courierService.getEarningsCourier(courierId);
+        CourierDTO result;
 
-        Assertions.assertEquals(expected, result);
+        try {
+            result = courierService.addNewCourier(courierDTOForCsv.getArgument());
+            Assertions.assertEquals(courierDTOForCsv.getExpected(), result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
+
 }
