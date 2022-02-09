@@ -18,5 +18,6 @@ public class GlobalExceptionHandler {
     }
 
     //TODO: Need to add a method for handling exception array couriers and contracts
+    //TODO: Need to add a classes of exception for handling invalidation data
 
 }
