@@ -37,7 +37,7 @@ public class CourierController {
     )
     public ResponseEntity<Object> createCouriers(
             @RequestBody CouriersRequest couriersRequest
-    ) throws Exception {
+    ) {
 
         List<CourierDTO> courierDTOList = couriersRequest.getCourierInfos()
                 .stream()

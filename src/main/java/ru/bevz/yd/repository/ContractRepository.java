@@ -8,13 +8,13 @@ import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.StatusContract;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, Integer> {
 
-    List<Contract> getAllByCourierAndStatus(Courier courier, StatusContract statusContract);
+    Set<Contract> getAllByCourierAndStatus(Courier courier, StatusContract statusContract);
 
     @Query(
             value = "SELECT DISTINCT con.*\n" +
@@ -30,9 +30,9 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "    OR courtp.left_limit >= contp.left_limit AND courtp.right_limit <= contp.right_limit)",
             nativeQuery = true
     )
-    List<Contract> getContractsForAssigned(
-            List<Integer> courierIdRegionList,
-            List<Integer> courierIdTimePeriodList,
+    Set<Contract> getContractsForAssigned(
+            Set<Integer> courierIdRegionList,
+            Set<Integer> courierIdTimePeriodList,
             float courierCapacity
     );
 
@@ -56,7 +56,7 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "  AND weight > :capacity",
             nativeQuery = true
     )
-    List<Contract> getContractsForRemoveByCapacity(int courierId, float capacity);
+    Set<Contract> getContractsForRemoveByCapacity(int courierId, float capacity);
 
 
     @Query(
@@ -67,7 +67,7 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "  AND region_id NOT IN :regionIdList",
             nativeQuery = true
     )
-    List<Contract> getContractsForRemoveByRegion(int courierId, List<Integer> regionIdList);
+    Set<Contract> getContractsForRemoveByRegion(int courierId, Set<Integer> regionIdList);
 
     @Query(
             value = "SELECT DISTINCT *\n" +
@@ -82,6 +82,6 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "    OR courtp.left_limit >= contp.left_limit AND courtp.right_limit <= contp.right_limit)",
             nativeQuery = true
     )
-    List<Contract> getContractsForRemoveByTimePeriod(int courierId, List<Integer> timePeriodIdList);
+    Set<Contract> getContractsForRemoveByTimePeriod(int courierId, Set<Integer> timePeriodIdList);
 
 }

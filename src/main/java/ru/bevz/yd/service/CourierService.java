@@ -1,30 +1,28 @@
 package ru.bevz.yd.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.bevz.yd.constants.GlobalConstant;
-import ru.bevz.yd.controller.CourierIdList;
-import ru.bevz.yd.controller.Id;
-import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDTO;
+import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
-import ru.bevz.yd.repository.RegionRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
-import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class CourierService {
 
     @Autowired
-    private ContractRepository contractRep;
+    private SecondaryService secondaryServ;
 
     @Autowired
     private CourierRepository courierRep;
@@ -33,10 +31,7 @@ public class CourierService {
     private TypeCourierRepository typeCourierRep;
 
     @Autowired
-    private RegionRepository regionRep;
-
-    @Autowired
-    private TimePeriodService timePeriodService;
+    private ContractRepository contractRep;
 
     @Autowired
     private CourierMapper courierMapper;
@@ -57,41 +52,28 @@ public class CourierService {
     }
 
     @Transactional
-    public CourierDTO addNewCouriers(List<CourierDTO> courierDTOs) throws Exception {
+    public CourierDTO addNewCouriers(List<CourierDTO> courierDTOs) {
 
-        List<Integer> courierIdsNotValid = new ArrayList<>();
+        List<Integer> notValidCouriersId = new ArrayList<>();
 
         for (CourierDTO courierDto : courierDTOs) {
             try {
                 addNewCourier(courierDto);
             } catch (Exception e) {
-                courierIdsNotValid.add(courierDto.getId());
+                notValidCouriersId.add(courierDto.getId());
             }
         }
 
-        if (!courierIdsNotValid.isEmpty()) {
-            throw new Exception(
-                    new ObjectMapper().writeValueAsString(
-                            new CourierIdList().setIdCouriers(
-                                    new IdList().setIdList(courierIdsNotValid
-                                            .stream()
-                                            .map(id -> new Id().setId(id))
-                                            .toList()
-                                    )
-                            )
-                    )
-            );
+        if (!notValidCouriersId.isEmpty()) {
+            throw new NotValidObjectsException("couriers", notValidCouriersId);
         }
 
-        CourierDTO courierDTO = new CourierDTO()
-                .setIdCouriers(
-                        courierDTOs
-                                .stream()
-                                .map(CourierDTO::getId)
-                                .toList()
-                );
-
-        return courierDTO;
+        return new CourierDTO().setIdCouriers(
+                courierDTOs
+                        .stream()
+                        .map(CourierDTO::getId)
+                        .toList()
+        );
     }
 
     @Transactional
@@ -115,19 +97,13 @@ public class CourierService {
         TypeCourier typeCourier = typeCourierOptional.get();
         courier.setTypeCourier(typeCourier);
 
-        Set<Region> regions = new HashSet<>();
-        for (int number : courierDTO.getRegions()) {
-            Optional<Region> regionOptional = regionRep.findRegionByNumber(number);
-            regions.add(regionOptional.orElse(regionRep.save(new Region().setNumber(number))));
-        }
+        Set<Region> regions =
+                secondaryServ.getOrSaveRegionsByNumber(courierDTO.getRegions());
         courier.setRegions(regions);
 
-        Set<TimePeriod> timePeriods = timePeriodService.addIfNotExistsTimePeriods(
-                courierDTO.getTimePeriods()
-                        .stream()
-                        .map(DateTimeUtils::toTP)
-                        .collect(Collectors.toSet())
-        );
+        Set<TimePeriod> timePeriods =
+                secondaryServ.getOrSaveTimePeriodsByString(courierDTO.getTimePeriods());
+
         courier.setTimePeriods(timePeriods);
 
         return courierMapper.toCourierDto(courierRep.save(courier));
@@ -153,7 +129,7 @@ public class CourierService {
             TypeCourier newTypeCourier = newTypeCourierOptional.get();
 
             if (originalCourier.getTypeCourier().getCapacity() > newTypeCourier.getCapacity()) {
-                List<Contract> contractsForRemove =
+                Set<Contract> contractsForRemove =
                         contractRep.getContractsForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
                 for (Contract contract : contractsForRemove) {
                     contract.setStatus(StatusContract.UNASSIGNED);
@@ -166,20 +142,17 @@ public class CourierService {
 
         Set<Integer> newRegionListStr = courierDTO.getRegions();
         if (newRegionListStr != null) {
-            Set<Region> newRegions = new HashSet<>();
-            for (int number : courierDTO.getRegions()) {
-                Optional<Region> regionOptional = regionRep.findRegionByNumber(number);
-                newRegions.add(regionOptional.orElse(regionRep.save(new Region().setNumber(number))));
-            }
+            Set<Region> newRegions =
+                    secondaryServ.getOrSaveRegionsByNumber(courierDTO.getRegions());
 
             if (!originalCourier.getRegions().containsAll(newRegions)) {
-                List<Contract> contractListForRemove =
+                Set<Contract> contractListForRemove =
                         contractRep.getContractsForRemoveByRegion(
                                 courierId,
                                 newRegions
                                         .stream()
                                         .map(Region::getId)
-                                        .toList()
+                                        .collect(Collectors.toSet())
                         );
                 for (Contract contract : contractListForRemove) {
                     contract.setStatus(StatusContract.UNASSIGNED);
@@ -192,21 +165,17 @@ public class CourierService {
 
         Set<String> newTimePeriodListStr = courierDTO.getTimePeriods();
         if (newTimePeriodListStr != null) {
-            Set<TimePeriod> newTimePeriods = timePeriodService.addIfNotExistsTimePeriods(
-                    courierDTO.getTimePeriods()
-                            .stream()
-                            .map(DateTimeUtils::toTP)
-                            .collect(Collectors.toSet())
-            );
+            Set<TimePeriod> newTimePeriods =
+                    secondaryServ.getOrSaveTimePeriodsByString(courierDTO.getTimePeriods());
 
             if (!originalCourier.getTimePeriods().containsAll(newTimePeriods)) {
-                List<Contract> contractsForRemove =
+                Set<Contract> contractsForRemove =
                         contractRep.getContractsForRemoveByTimePeriod(
                                 courierId,
                                 newTimePeriods
                                         .stream()
                                         .map(TimePeriod::getId)
-                                        .toList()
+                                        .collect(Collectors.toSet())
                         );
                 for (Contract contract : contractsForRemove) {
                     contract.setStatus(StatusContract.UNASSIGNED);

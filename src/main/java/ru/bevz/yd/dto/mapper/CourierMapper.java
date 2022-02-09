@@ -62,16 +62,14 @@ public class CourierMapper {
     }
 
     public CouriersCreatedResponse toCouriersCreatedResponse(CourierDTO courierDTO) {
-        return new CouriersCreatedResponse()
-                .setCouriers(
-                        new IdList()
-                                .setIdList(
-                                        courierDTO.getIdCouriers()
-                                                .stream()
-                                                .map(id -> new Id().setId(id))
-                                                .toList()
-                                )
-                );
+        return new CouriersCreatedResponse().setCouriers(
+                new IdList().setIdList(
+                        courierDTO.getIdCouriers()
+                                .stream()
+                                .map(id -> new Id().setId(id))
+                                .toList()
+                )
+        );
     }
 
 }

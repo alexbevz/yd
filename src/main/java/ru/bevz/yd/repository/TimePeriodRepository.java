@@ -5,12 +5,11 @@ import org.springframework.stereotype.Repository;
 import ru.bevz.yd.model.TimePeriod;
 
 import java.time.LocalTime;
+import java.util.Optional;
 
 @Repository
 public interface TimePeriodRepository extends JpaRepository<TimePeriod, Integer> {
 
-    boolean existsByFromAndTo(LocalTime from, LocalTime to);
-
-    TimePeriod getTimePeriodByFromAndTo(LocalTime from, LocalTime to);
+    Optional<TimePeriod> findTimePeriodByFromAndTo(LocalTime from, LocalTime to);
 
 }
