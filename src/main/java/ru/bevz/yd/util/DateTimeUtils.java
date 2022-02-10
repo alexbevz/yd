@@ -1,6 +1,7 @@
 package ru.bevz.yd.util;
 
 import lombok.NoArgsConstructor;
+import ru.bevz.yd.exception.ConversionTPException;
 import ru.bevz.yd.model.TimePeriod;
 
 import java.time.LocalDateTime;
@@ -25,7 +26,7 @@ public class DateTimeUtils {
             return tp;
         } catch (Exception e) {
             e.printStackTrace();
-            throw e;
+            throw new ConversionTPException(str);
         }
     }
 
@@ -38,8 +39,7 @@ public class DateTimeUtils {
     }
 
     public static Optional<TimePeriod> findTPForTime(Set<TimePeriod> tps, LocalTime time) {
-        return tps
-                .stream()
+        return tps.stream()
                 .filter(tp -> isTimeInTP(tp, time))
                 .min(Comparator.comparing(TimePeriod::getFrom));
     }

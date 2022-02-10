@@ -68,7 +68,9 @@ public class ContractController {
             summary = "Назначение заказов",
             description = "Позволяет назначить заказы выбранному курьеру по его характеристиками"
     )
-    public ResponseEntity<Object> assignContracts(@RequestBody CourierInfo courierInfo) throws Exception {
+    public ResponseEntity<Object> assignContracts(
+            @RequestBody CourierInfo courierInfo
+    ) {
 
         ContractDTO contractDto = new ContractDTO().setCourierId(courierInfo.getId());
 
@@ -84,7 +86,9 @@ public class ContractController {
             summary = "Выполнение заказа",
             description = "Позволяет отметить заказ выполненным для опредленного курьера"
     )
-    public ResponseEntity<Object> completeContract(@RequestBody CompletedContractRequest completedContractRequest) throws Exception {
+    public ResponseEntity<Object> completeContract(
+            @RequestBody CompletedContractRequest completedContractRequest
+    ) {
 
         ContractDTO contractDto = contractMapper.toContractDTO(completedContractRequest);
 

@@ -59,7 +59,7 @@ public class CourierController {
     public ResponseEntity<Object> patchCourier(
             @PathVariable(value = "id") int courierId,
             @RequestBody CourierPatchRequest courierPatchRequest
-    ) throws Exception {
+    ) {
 
         CourierDTO courierDto = courierMapper.toCourierDto(courierPatchRequest)
                 .setId(courierId);
@@ -78,7 +78,7 @@ public class CourierController {
     )
     public ResponseEntity<Object> getCourier(
             @PathVariable(value = "id") int courierId
-    ) throws Exception {
+    ) {
 
         CourierDTO courierDTO = new CourierDTO().setId(courierId);
 

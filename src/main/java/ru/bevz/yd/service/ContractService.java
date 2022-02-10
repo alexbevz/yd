@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.bevz.yd.dto.mapper.ContractMapper;
 import ru.bevz.yd.dto.model.ContractDTO;
-import ru.bevz.yd.exception.NotValidObjectsException;
+import ru.bevz.yd.exception.*;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
@@ -46,6 +46,7 @@ public class ContractService {
                 addNewContract(contractDto);
             } catch (Exception e) {
                 notValidContractsId.add(contractDto.getId());
+                e.printStackTrace();
             }
         }
 
@@ -62,12 +63,14 @@ public class ContractService {
     }
 
     @Transactional
-    public ContractDTO addNewContract(ContractDTO contractDTO) throws Exception {
+    public ContractDTO addNewContract(ContractDTO contractDTO) {
 
         int contractId = contractDTO.getId();
 
-        if (contractRep.existsById(contractId)) {
-            throw new Exception();
+        Optional<Contract> optionalContract = contractRep.findById(contractId);
+
+        if (optionalContract.isPresent()) {
+            throw new EntityAlreadyExistsException(optionalContract.get());
         }
 
         Contract contract = new Contract();
@@ -81,16 +84,17 @@ public class ContractService {
     }
 
     @Transactional
-    public ContractDTO assignContracts(ContractDTO contractDTO) throws Exception {
+    public ContractDTO assignContracts(ContractDTO contractDTO) {
         int courierId = contractDTO.getCourierId();
 
         contractDTO = new ContractDTO();
-        Courier courier = courierRep.findById(courierId).orElse(null);
+        Optional<Courier> optionalCourier = courierRep.findById(courierId);
 
-        if (courier == null) {
-            throw new Exception("Not exist courier with id " + courierId + "!");
+        if (optionalCourier.isEmpty()) {
+            throw new EntityNotExistsException(new Courier().setId(courierId));
         }
 
+        Courier courier = optionalCourier.get();
 
         Set<Contract> contracts =
                 contractRep.getAllByCourierAndStatus(courier, StatusContract.ASSIGNED);
@@ -144,7 +148,7 @@ public class ContractService {
     }
 
     @Transactional
-    public ContractDTO completeContract(ContractDTO contractDTO) throws Exception {
+    public ContractDTO completeContract(ContractDTO contractDTO) {
         int contractId = contractDTO.getId();
         int courierId = contractDTO.getCourierId();
         LocalDateTime DTCompleted =
@@ -152,32 +156,27 @@ public class ContractService {
 
         Optional<Contract> contractOptional = contractRep.findById(contractId);
         if (contractOptional.isEmpty()) {
-            throw new Exception("Not exists the contract with id " + contractId + "!");
+            throw new EntityNotExistsException(new Contract().setId(contractId));
         }
         Contract contract = contractOptional.get();
         if (contract.getStatus() == StatusContract.COMPLETED) {
-            throw new Exception("The contract with id " + contractId + " has already been delivered!");
+            throw new OrderHasBeenDeliveredException(contract);
         }
 
         Optional<Courier> courierOptional = courierRep.findById(courierId);
         if (courierOptional.isEmpty()) {
-            throw new Exception("Not exists the courier with id " + courierId + "!");
+            throw new EntityNotExistsException(new Courier().setId(courierId));
         }
         Courier courier = courierOptional.get();
 
         if (contract.getCourier().getId() != courierId) {
-            throw new Exception("The contract with id " + contractId + " is not assigned to courier with id " + courierId + "!");
+            throw new OrderAssignedForOtherCourierException(contract);
         }
 
         Optional<TimePeriod> courierTimePeriodOptional =
                 findTPForTime(courier.getTimePeriods(), DTCompleted);
         if (courierTimePeriodOptional.isEmpty()) {
-            throw new Exception("Time is not valid! " +
-                    "Has not found a time interval fot courier with id " + courierId + "! "
-                    + courier.getTimePeriods()
-                    .stream()
-                    .map(DateTimeUtils::toStringTP)
-                    .toList());
+            throw new NotFoundTPForEntityException(courier);
         }
         TimePeriod courierTP = courierTimePeriodOptional.get();
 
