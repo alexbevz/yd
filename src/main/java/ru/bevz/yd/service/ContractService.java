@@ -1,17 +1,13 @@
 package ru.bevz.yd.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.bevz.yd.controller.ContractIdList;
-import ru.bevz.yd.controller.Id;
-import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.mapper.ContractMapper;
 import ru.bevz.yd.dto.model.ContractDTO;
+import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
-import ru.bevz.yd.repository.RegionRepository;
 import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
@@ -19,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.bevz.yd.util.DateTimeUtils.findTPForTime;
@@ -28,54 +25,40 @@ import static ru.bevz.yd.util.DateTimeUtils.isTimeInTP;
 public class ContractService {
 
     @Autowired
+    private SecondaryService secondaryServ;
+
+    @Autowired
     private ContractRepository contractRep;
 
     @Autowired
     private CourierRepository courierRep;
 
     @Autowired
-    private TimePeriodService timePeriodService;
-
-    @Autowired
-    private RegionRepository regionRep;
-
-    @Autowired
     private ContractMapper contractMapper;
 
     @Transactional
-    public ContractDTO addContracts(List<ContractDTO> contractDTOs) throws Exception {
+    public ContractDTO addContracts(List<ContractDTO> contractDTOs) {
 
-        List<Integer> contractIdsNotValid = new ArrayList<>();
+        List<Integer> notValidContractsId = new ArrayList<>();
 
         for (ContractDTO contractDto : contractDTOs) {
             try {
                 addNewContract(contractDto);
             } catch (Exception e) {
-                contractIdsNotValid.add(contractDto.getId());
+                notValidContractsId.add(contractDto.getId());
             }
         }
 
-        if (!contractIdsNotValid.isEmpty()) {
-            throw new Exception(
-                    new ObjectMapper().writeValueAsString(
-                            new ContractIdList().setIdContracts(
-                                    new IdList().setIdList(contractIdsNotValid
-                                            .stream()
-                                            .map(id -> new Id().setId(id))
-                                            .toList()
-                                    )
-                            )
-                    )
-            );
+        if (!notValidContractsId.isEmpty()) {
+            throw new NotValidObjectsException("orders", notValidContractsId);
         }
-        ContractDTO contractDTO = new ContractDTO().setIdContracts(
+
+        return new ContractDTO().setIdContracts(
                 contractDTOs
                         .stream()
                         .map(ContractDTO::getId)
                         .toList()
         );
-
-        return contractDTO;
     }
 
     @Transactional
@@ -90,17 +73,8 @@ public class ContractService {
         Contract contract = new Contract();
         contract.setId(contractId);
         contract.setWeight(contractDTO.getWeight());
-        contract.setRegion(
-                regionRep.findRegionByNumber(contractDTO.getRegion())
-                        .orElse(
-                                regionRep.save(new Region().setNumber(contractDTO.getRegion()))
-                        )
-        );
-        contract.setTimePeriods(timePeriodService.addIfNotExistsTimePeriods(
-                contractDTO.getTimePeriods()
-                        .stream()
-                        .map(DateTimeUtils::toTP)
-                        .collect(Collectors.toSet())));
+        contract.setRegion(secondaryServ.getOrSaveRegionByNumber(contractDTO.getRegion()));
+        contract.setTimePeriods(secondaryServ.getOrSaveTimePeriodsByString(contractDTO.getTimePeriods()));
         contract.setStatus(StatusContract.UNASSIGNED);
 
         return contractMapper.toContractDTO(contractRep.save(contract));
@@ -118,18 +92,31 @@ public class ContractService {
         }
 
 
-        List<Contract> contracts =
+        Set<Contract> contracts =
                 contractRep.getAllByCourierAndStatus(courier, StatusContract.ASSIGNED);
 
         if (!contracts.isEmpty()) {
-            contractDTO.setDatetimeAssign(contracts.get(0).getDatetimeAssignment().toString());
+            contractDTO.setDatetimeAssign(
+                    contracts
+                            .stream()
+                            .findAny()
+                            .get()
+                            .getDatetimeAssignment()
+                            .toString()
+            );
             contractDTO.setIdContracts(contracts.stream().map(Contract::getId).toList());
             return contractDTO;
         }
 
         contracts = contractRep.getContractsForAssigned(
-                courier.getRegions().stream().map(Region::getId).toList(),
-                courier.getTimePeriods().stream().map(TimePeriod::getId).toList(),
+                courier.getRegions()
+                        .stream()
+                        .map(Region::getId)
+                        .collect(Collectors.toSet()),
+                courier.getTimePeriods()
+                        .stream()
+                        .map(TimePeriod::getId)
+                        .collect(Collectors.toSet()),
                 courier.getTypeCourier().getCapacity()
         );
 
@@ -137,16 +124,21 @@ public class ContractService {
             return contractDTO;
         }
 
-        LocalDateTime dateTime = LocalDateTime.now();
+        LocalDateTime dateTimeAssignment = LocalDateTime.now();
 
         for (Contract contract : contracts) {
-            contract.setDatetimeAssignment(dateTime);
+            contract.setDatetimeAssignment(dateTimeAssignment);
             contract.setStatus(StatusContract.ASSIGNED);
             contract.setCourier(courier);
         }
 
-        contractDTO.setDatetimeAssign(contracts.get(0).getDatetimeAssignment().toString());
-        contractDTO.setIdContracts(contracts.stream().map(Contract::getId).toList());
+        contractDTO.setDatetimeAssign(dateTimeAssignment.toString());
+        contractDTO.setIdContracts(
+                contracts
+                        .stream()
+                        .map(Contract::getId)
+                        .toList()
+        );
 
         return contractDTO;
     }

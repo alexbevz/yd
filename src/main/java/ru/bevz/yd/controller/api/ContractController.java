@@ -47,9 +47,10 @@ public class ContractController {
             responseCode = "201",
             content = @Content(schema = @Schema(implementation = ContractsCreatedResponse.class))
     )
-    public ResponseEntity<Object> createContracts(@RequestBody ContractsRequest contractsRequest) throws
+    public ResponseEntity<Object> createContracts(
+            @RequestBody ContractsRequest contractsRequest
+    ) {
 
-            Exception {
         List<ContractDTO> contractDTOs = contractsRequest.getContractInfos()
                 .stream()
                 .map(contractMapper::toContractDTO)

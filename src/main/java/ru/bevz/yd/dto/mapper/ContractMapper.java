@@ -12,6 +12,9 @@ import ru.bevz.yd.dto.model.ContractDTO;
 import ru.bevz.yd.model.Contract;
 import ru.bevz.yd.util.DateTimeUtils;
 
+import java.util.HashSet;
+import java.util.stream.Collectors;
+
 @Component
 public class ContractMapper {
 
@@ -20,7 +23,7 @@ public class ContractMapper {
                 .setId(contractInfo.getId())
                 .setWeight(contractInfo.getWeight())
                 .setRegion(contractInfo.getRegion())
-                .setTimePeriods(contractInfo.getDeliveryHours());
+                .setTimePeriods(new HashSet<>(contractInfo.getDeliveryHours()));
     }
 
     public ContractDTO toContractDTO(CompletedContractRequest completedContractRequest) {
@@ -33,30 +36,25 @@ public class ContractMapper {
     public ContractDTO toContractDTO(Contract contract) {
         return new ContractDTO()
                 .setId(contract.getId())
-                .setCourierId(contract.getCourier().getId())
                 .setRegion(contract.getRegion().getNumber())
                 .setWeight(contract.getWeight())
                 .setTimePeriods(
                         contract.getTimePeriods()
                                 .stream()
                                 .map(DateTimeUtils::toStringTP)
-                                .toList()
-                )
-                .setDatetimeAssign(contract.getDatetimeAssignment().toString())
-                .setDatetimeComplete(contract.getDatetimeRealization().toString());
+                                .collect(Collectors.toSet())
+                );
 
     }
 
     public ContractsAssignOKResponse toContractsAssignOKResponse(ContractDTO contractDTO) {
-        return new ContractsAssignOKResponse()
-                .setIdContracts(
-                        new IdList()
-                                .setIdList(
-                                        contractDTO.getIdContracts()
-                                                .stream()
-                                                .map(id -> new Id().setId(id))
-                                                .toList()
-                                )
+        return new ContractsAssignOKResponse().setIdContracts(
+                        new IdList().setIdList(
+                                contractDTO.getIdContracts()
+                                        .stream()
+                                        .map(id -> new Id().setId(id))
+                                        .toList()
+                        )
                 )
                 .setTimeAssigned(contractDTO.getDatetimeAssign());
     }
@@ -67,16 +65,14 @@ public class ContractMapper {
     }
 
     public ContractsCreatedResponse toContractsCreatedResponse(ContractDTO contractDTO) {
-        return new ContractsCreatedResponse()
-                .setContracts(
-                        new IdList()
-                                .setIdList(
-                                        contractDTO.getIdContracts()
-                                                .stream()
-                                                .map(id -> new Id().setId(id))
-                                                .toList()
-                                )
-                );
+        return new ContractsCreatedResponse().setContracts(
+                new IdList().setIdList(
+                        contractDTO.getIdContracts()
+                                .stream()
+                                .map(id -> new Id().setId(id))
+                                .toList()
+                )
+        );
     }
 
 }
