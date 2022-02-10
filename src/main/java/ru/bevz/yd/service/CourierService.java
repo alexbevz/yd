@@ -39,6 +39,9 @@ public class CourierService {
     private CourierMapper courierMapper;
 
     public float getEarningsCourier(int courierId) {
+        if (!courierRep.existsById(courierId)) {
+            throw new EntityNotExistsException(new Courier().setId(courierId));
+        }
         return courierRep.getEarningsByCourierIdAndAwardForContract(
                 courierId,
                 GlobalConstant.AWARD_FOR_CONTRACT
@@ -46,6 +49,9 @@ public class CourierService {
     }
 
     public float getRatingCourier(int courierId) {
+        if (!courierRep.existsById(courierId)) {
+            throw new EntityNotExistsException(new Courier().setId(courierId));
+        }
         int hs = 60 * 60;
         int t = courierRep.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
         return (float) (hs - Math.min(t, hs)) / hs * 5;
