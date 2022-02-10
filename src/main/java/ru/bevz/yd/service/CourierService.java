@@ -2,9 +2,11 @@ package ru.bevz.yd.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.bevz.yd.constants.GlobalConstant;
+import ru.bevz.yd.constant.GlobalConstant;
 import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDTO;
+import ru.bevz.yd.exception.EntityAlreadyExistsException;
+import ru.bevz.yd.exception.EntityNotExistsException;
 import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
@@ -37,18 +39,16 @@ public class CourierService {
     private CourierMapper courierMapper;
 
     public float getEarningsCourier(int courierId) {
-        float earnings = courierRep.getEarningsByCourierIdAndAwardForContract(
+        return courierRep.getEarningsByCourierIdAndAwardForContract(
                 courierId,
                 GlobalConstant.AWARD_FOR_CONTRACT
         ).orElse(0);
-        return earnings;
     }
 
     public float getRatingCourier(int courierId) {
         int hs = 60 * 60;
         int t = courierRep.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
-        float rating = (float) (hs - Math.min(t, hs)) / hs * 5;
-        return rating;
+        return (float) (hs - Math.min(t, hs)) / hs * 5;
     }
 
     @Transactional
@@ -61,6 +61,7 @@ public class CourierService {
                 addNewCourier(courierDto);
             } catch (Exception e) {
                 notValidCouriersId.add(courierDto.getId());
+                e.printStackTrace();
             }
         }
 
@@ -77,18 +78,20 @@ public class CourierService {
     }
 
     @Transactional
-    public CourierDTO addNewCourier(CourierDTO courierDTO) throws Exception {
+    public CourierDTO addNewCourier(CourierDTO courierDTO) {
         int courierId = courierDTO.getId();
         String nameType = courierDTO.getType();
 
-        if (courierRep.existsById(courierId)) {
-            throw new Exception("Courier with id " + courierId + " exists!");
+        Optional<Courier> optionalCourier = courierRep.findById(courierId);
+
+        if (optionalCourier.isPresent()) {
+            throw new EntityAlreadyExistsException(optionalCourier.get());
         }
 
         Optional<TypeCourier> typeCourierOptional =
                 typeCourierRep.findTypeCourierByName(nameType);
         if (typeCourierOptional.isEmpty()) {
-            throw new Exception("TypeCourier with name " + nameType + "does not exist");
+            throw new EntityNotExistsException(new TypeCourier().setName(nameType));
         }
 
         Courier courier = new Courier();
@@ -110,12 +113,12 @@ public class CourierService {
     }
 
     @Transactional
-    public CourierDTO patchCourier(CourierDTO courierDTO) throws Exception {
+    public CourierDTO patchCourier(CourierDTO courierDTO) {
         int courierId = courierDTO.getId();
 
         Optional<Courier> courierOptional = courierRep.findById(courierId);
         if (courierOptional.isEmpty()) {
-            throw new Exception("Courier with id " + courierId + "do not exist!");
+            throw new EntityNotExistsException(new Courier().setId(courierId));
         }
         Courier originalCourier = courierOptional.get();
 
@@ -124,7 +127,7 @@ public class CourierService {
             Optional<TypeCourier> newTypeCourierOptional =
                     typeCourierRep.findTypeCourierByName(newTypeCourierStr);
             if (newTypeCourierOptional.isEmpty()) {
-                throw new Exception("TypeCourier with name " + newTypeCourierStr + "is not exist!");
+                throw new EntityNotExistsException(newTypeCourierStr);
             }
             TypeCourier newTypeCourier = newTypeCourierOptional.get();
 
@@ -190,13 +193,13 @@ public class CourierService {
         return courierDTO;
     }
 
-    public CourierDTO getCourierInfoById(CourierDTO courierDTO) throws Exception {
+    public CourierDTO getCourierInfoById(CourierDTO courierDTO) {
         int courierId = courierDTO.getId();
 
         Optional<Courier> courierOptional = courierRep.findById(courierId);
 
         if (courierOptional.isEmpty()) {
-            throw new Exception("Courier does not exists with ID " + courierId);
+            throw new EntityNotExistsException(new Courier().setId(courierId));
         }
 
         courierDTO = courierMapper.toCourierDto(courierOptional.get());

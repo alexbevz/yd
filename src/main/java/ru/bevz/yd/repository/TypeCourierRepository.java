@@ -9,10 +9,6 @@ import java.util.Optional;
 @Repository
 public interface TypeCourierRepository extends JpaRepository<TypeCourier, Integer> {
 
-    boolean existsByName(String name);
-
-    TypeCourier getTypeCourierByName(String name);
-
     Optional<TypeCourier> findTypeCourierByName(String name);
 
 }

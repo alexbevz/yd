@@ -21,8 +21,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(infoException);
     }
 
-    //TODO: Need to add a classes of exception for handling invalidation data
-
     @ExceptionHandler
     public ResponseEntity<Object> handleNotValidObjectsException(NotValidObjectsException exception) {
 
