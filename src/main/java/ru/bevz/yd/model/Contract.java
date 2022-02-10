@@ -3,6 +3,7 @@ package ru.bevz.yd.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -14,6 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@ToString
 @Accessors(chain = true)
 @Entity
 @Table(name = "contract")
@@ -42,7 +44,7 @@ public class Contract {
             joinColumns = @JoinColumn(name = "contract_id"),
             inverseJoinColumns = @JoinColumn(name = "time_period_id")
     )
-    private Set<TimePeriod> TimePeriods;
+    private Set<TimePeriod> timePeriods;
 
     @Column(name = "datetime_assignment")
     private LocalDateTime datetimeAssignment;
