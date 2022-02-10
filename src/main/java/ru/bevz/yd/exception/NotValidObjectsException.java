@@ -18,11 +18,6 @@ public class NotValidObjectsException extends RuntimeException {
 
     private IdList idList;
 
-    public NotValidObjectsException(String nameObjects, IdList idList) {
-        this.nameObjects = nameObjects;
-        this.idList = idList;
-    }
-
     public NotValidObjectsException(String nameObjects, List<Integer> idList) {
         this.nameObjects = nameObjects;
         this.idList = new IdList().setIdList(
