@@ -1,0 +1,2 @@
+EXP_EXCEPTION, ARG_ID, ARG_TYPE, ARG_REGIONS, ARG_TIME_PERIODS
+EntityAlreadyExistsException, 1, foot, 41 13, 10:00-12:00

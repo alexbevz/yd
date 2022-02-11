@@ -6,7 +6,7 @@ import ru.bevz.yd.dto.model.CourierDTO;
 
 @Data
 @Accessors(chain = true)
-public class CourierDTOForCSV {
+public class CourierDTOForCSVNoException {
 
     private CourierDTO expected;
 

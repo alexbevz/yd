@@ -13,10 +13,13 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
 import ru.bevz.yd.YandexDeliveryApplication;
-import ru.bevz.yd.annotation.CSVToCourierDTOForCSV;
+import ru.bevz.yd.annotation.CSVToCourierDTONoException;
+import ru.bevz.yd.annotation.CSVToCourierDTOWithException;
 import ru.bevz.yd.dto.model.CourierDTO;
-import ru.bevz.yd.pojo.CourierDTOForCSV;
+import ru.bevz.yd.pojo.CourierDTOForCSVNoException;
+import ru.bevz.yd.pojo.CourierDTOForCSVWithException;
 
 
 @AutoConfigureEmbeddedDatabase(
@@ -41,20 +44,28 @@ public class CourierServiceTest {
 
     @ParameterizedTest
     @CsvFileSource(
-            resources = {"/test-db/data-courier-test/add-new-courier-test-no-exceptions.csv"},
+            resources = {"/test-db/data-courier-test/add-new-courier-test-no-exception.csv"},
             numLinesToSkip = 1
     )
-    public void addNewCourierTestNoExceptions(@CSVToCourierDTOForCSV CourierDTOForCSV courierDTOForCsv) {
+    public void addNewCourierTestNoException(@CSVToCourierDTONoException CourierDTOForCSVNoException courierDTOTest) {
 
-        CourierDTO result;
+        CourierDTO result = courierService.addNewCourier(courierDTOTest.getArgument());
 
-        try {
-            result = courierService.addNewCourier(courierDTOForCsv.getArgument());
-            Assertions.assertEquals(courierDTOForCsv.getExpected(), result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Assertions.assertEquals(courierDTOTest.getExpected(), result);
+    }
 
+    @ParameterizedTest
+    @CsvFileSource(
+            resources = {"/test-db/data-courier-test/add-new-courier-test-with-exception.csv"},
+            numLinesToSkip = 1
+    )
+    @Sql("/test-db/test-courier-service-data.sql")
+    public void addNewCourierTestWithException(@CSVToCourierDTOWithException CourierDTOForCSVWithException courierDTOTest) {
+
+        Assertions.assertThrows(
+                courierDTOTest.getExpectedException(),
+                () -> courierService.addNewCourier(courierDTOTest.getArgument())
+        );
     }
 
 }

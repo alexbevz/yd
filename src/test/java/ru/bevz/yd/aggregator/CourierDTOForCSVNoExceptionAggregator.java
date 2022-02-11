@@ -6,19 +6,19 @@ import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
 import ru.bevz.yd.dto.model.CourierDTO;
-import ru.bevz.yd.pojo.CourierDTOForCSV;
+import ru.bevz.yd.pojo.CourierDTOForCSVNoException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class CourierDTOForCSVAggregator implements ArgumentsAggregator {
+public class CourierDTOForCSVNoExceptionAggregator implements ArgumentsAggregator {
 
     @Override
-    public CourierDTOForCSV aggregateArguments(
+    public CourierDTOForCSVNoException aggregateArguments(
             ArgumentsAccessor arguments,
             ParameterContext context
     ) throws ArgumentsAggregationException {
-        return new CourierDTOForCSV()
+        return new CourierDTOForCSVNoException()
                 .setExpected(
                         new CourierDTO()
                                 .setId(arguments.getInteger(0))
