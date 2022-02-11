@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import ru.bevz.yd.YandexDeliveryApplication;
@@ -21,7 +20,6 @@ import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.pojo.CourierDTOForCSVNoException;
 import ru.bevz.yd.pojo.CourierDTOForCSVWithException;
 
-
 @AutoConfigureEmbeddedDatabase(
         provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY,
         type = AutoConfigureEmbeddedDatabase.DatabaseType.POSTGRES
@@ -30,7 +28,6 @@ import ru.bevz.yd.pojo.CourierDTOForCSVWithException;
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         classes = YandexDeliveryApplication.class
 )
-@AutoConfigureMockMvc
 public class CourierServiceTest {
 
     @Rule
@@ -38,13 +35,13 @@ public class CourierServiceTest {
     @Rule
     public PreparedDbRule db =
             EmbeddedPostgresRules.preparedDatabase(
-                    LiquibasePreparer.forClasspathLocation("/test-db/changelog-master-test.xml"));
+                    LiquibasePreparer.forClasspathLocation("/changelog-master-test.xml"));
     @Autowired
     private CourierService courierService;
 
     @ParameterizedTest
     @CsvFileSource(
-            resources = {"/test-db/data-courier-test/add-new-courier-test-no-exception.csv"},
+            resources = {"/courier-test-data/add-new-courier-test-no-exception.csv"},
             numLinesToSkip = 1
     )
     public void addNewCourierTestNoException(@CSVToCourierDTONoException CourierDTOForCSVNoException courierDTOTest) {
@@ -56,10 +53,22 @@ public class CourierServiceTest {
 
     @ParameterizedTest
     @CsvFileSource(
-            resources = {"/test-db/data-courier-test/add-new-courier-test-with-exception.csv"},
-            numLinesToSkip = 1
+            resources = {"/courier-test-data/add-new-courier-test-with-exception.csv"},
+            numLinesToSkip = 1,
+            emptyValue = "null",
+            nullValues = "nullList"
     )
-    @Sql("/test-db/test-courier-service-data.sql")
+    @Sql(
+            value = {
+                    "/courier-test-data/courier-service-test-delete-data.sql",
+                    "/courier-test-data/courier-service-test-insert-data.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    @Sql(
+            value = "/courier-test-data/courier-service-test-delete-data.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
+    )
     public void addNewCourierTestWithException(@CSVToCourierDTOWithException CourierDTOForCSVWithException courierDTOTest) {
 
         Assertions.assertThrows(
