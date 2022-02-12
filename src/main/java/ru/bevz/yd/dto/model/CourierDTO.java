@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode
 @Accessors(chain = true)
 public class CourierDTO {
 

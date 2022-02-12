@@ -1,5 +1,6 @@
 package ru.bevz.yd.service;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.bevz.yd.constant.GlobalConstant;
@@ -14,10 +15,12 @@ import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 
 import javax.transaction.Transactional;
+import javax.validation.ValidationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,7 +41,8 @@ public class CourierService {
     @Autowired
     private CourierMapper courierMapper;
 
-    public float getEarningsCourier(int courierId) {
+    public float getCourierEarnings(int courierId) {
+        //TODO: Implement like wrapper
         if (!courierRep.existsById(courierId)) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
@@ -48,7 +52,8 @@ public class CourierService {
         ).orElse(0);
     }
 
-    public float getRatingCourier(int courierId) {
+    public float getCourierRating(int courierId) {
+        //TODO: Implement like wrapper
         if (!courierRep.existsById(courierId)) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
@@ -58,13 +63,15 @@ public class CourierService {
     }
 
     @Transactional
-    public CourierDTO addNewCouriers(List<CourierDTO> courierDTOs) {
+    public CourierDTO createCouriers(@NotNull List<CourierDTO> courierDTOs) {
+        if (courierDTOs.isEmpty()) {
+            throw new NullPointerException("Empty data!");
+        }
 
         List<Integer> notValidCouriersId = new ArrayList<>();
-
         for (CourierDTO courierDto : courierDTOs) {
             try {
-                addNewCourier(courierDto);
+                createCourier(courierDto);
             } catch (Exception e) {
                 notValidCouriersId.add(courierDto.getId());
                 e.printStackTrace();
@@ -75,25 +82,24 @@ public class CourierService {
             throw new NotValidObjectsException("couriers", notValidCouriersId);
         }
 
-        return new CourierDTO().setIdCouriers(
-                courierDTOs
-                        .stream()
-                        .map(CourierDTO::getId)
-                        .toList()
-        );
+        return courierMapper.toCourierDTO(courierDTOs);
     }
 
     @Transactional
-    public CourierDTO addNewCourier(CourierDTO courierDTO) {
+    public CourierDTO createCourier(@NotNull CourierDTO courierDTO) {
+        //TODO: Implement like wrapper
+        if (!validateCourierDTO(courierDTO)) {
+            throw new ValidationException(courierDTO.toString());
+        }
+
         int courierId = courierDTO.getId();
-        String nameType = courierDTO.getType();
 
         Optional<Courier> optionalCourier = courierRep.findById(courierId);
-
         if (optionalCourier.isPresent()) {
             throw new EntityAlreadyExistsException(optionalCourier.get());
         }
 
+        String nameType = courierDTO.getType();
         Optional<TypeCourier> typeCourierOptional =
                 typeCourierRep.findTypeCourierByName(nameType);
         if (typeCourierOptional.isEmpty()) {
@@ -119,13 +125,14 @@ public class CourierService {
     }
 
     @Transactional
-    public CourierDTO patchCourier(CourierDTO courierDTO) {
+    public CourierDTO patchCourier(@NotNull CourierDTO courierDTO) {
         int courierId = courierDTO.getId();
 
         Optional<Courier> courierOptional = courierRep.findById(courierId);
         if (courierOptional.isEmpty()) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
+
         Courier originalCourier = courierOptional.get();
 
         String newTypeCourierStr = courierDTO.getType();
@@ -199,20 +206,38 @@ public class CourierService {
         return courierDTO;
     }
 
-    public CourierDTO getCourierInfoById(CourierDTO courierDTO) {
+    public CourierDTO getCourier(@NotNull CourierDTO courierDTO) {
         int courierId = courierDTO.getId();
 
         Optional<Courier> courierOptional = courierRep.findById(courierId);
-
         if (courierOptional.isEmpty()) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
 
         courierDTO = courierMapper.toCourierDto(courierOptional.get());
-        courierDTO.setRating(getRatingCourier(courierId));
-        courierDTO.setEarnings(getEarningsCourier(courierId));
+        courierDTO.setRating(getCourierRating(courierId));
+        courierDTO.setEarnings(getCourierEarnings(courierId));
 
         return courierDTO;
+    }
+
+    //TODO: Add the validation aspect class for courier
+    public boolean validateCourierDTO(@NotNull CourierDTO courierDTO) {
+        int courierId = courierDTO.getId();
+        String nameType = courierDTO.getType();
+        Set<Integer> regionNumbers = courierDTO.getRegions();
+        Set<String> timePeriodsStr = courierDTO.getTimePeriods();
+
+        return courierId > 0 &&
+                nameType != null &&
+                !regionNumbers.isEmpty() &&
+                regionNumbers.stream().allMatch(num -> num > 0) &&
+                !timePeriodsStr.isEmpty() &&
+                timePeriodsStr
+                        .stream()
+                        .allMatch(str -> Pattern.matches(
+                                "^(20|21|22|23|[01]\\d|\\d)((:[0-5]\\d){1,2})-(20|21|22|23|[01]\\d|\\d)((:[0-5]\\d){1,2})$",
+                                str));
     }
 
 }

@@ -12,6 +12,7 @@ import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.Region;
 import ru.bevz.yd.util.DateTimeUtils;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,15 @@ public class CourierMapper {
                                 .map(DateTimeUtils::toStringTP)
                                 .collect(Collectors.toSet())
                 );
+    }
+
+    public CourierDTO toCourierDTO(Collection<CourierDTO> courierDTOs) {
+        return new CourierDTO().setIdCouriers(
+                courierDTOs
+                        .stream()
+                        .map(CourierDTO::getId)
+                        .toList()
+        );
     }
 
     public CourierInfoResponse toCourierInfoResponse(CourierDTO courierDTO) {
