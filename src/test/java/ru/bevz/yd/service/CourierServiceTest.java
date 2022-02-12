@@ -46,7 +46,7 @@ public class CourierServiceTest {
     )
     public void addNewCourierTestNoException(@CSVToCourierDTONoException CourierDTOForCSVNoException courierDTOTest) {
 
-        CourierDTO result = courierService.addNewCourier(courierDTOTest.getArgument());
+        CourierDTO result = courierService.createCourier(courierDTOTest.getArgument());
 
         Assertions.assertEquals(courierDTOTest.getExpected(), result);
     }
@@ -54,9 +54,7 @@ public class CourierServiceTest {
     @ParameterizedTest
     @CsvFileSource(
             resources = {"/courier-test-data/add-new-courier-test-with-exception.csv"},
-            numLinesToSkip = 1,
-            emptyValue = "null",
-            nullValues = "nullList"
+            numLinesToSkip = 1
     )
     @Sql(
             value = {
@@ -73,7 +71,7 @@ public class CourierServiceTest {
 
         Assertions.assertThrows(
                 courierDTOTest.getExpectedException(),
-                () -> courierService.addNewCourier(courierDTOTest.getArgument())
+                () -> courierService.createCourier(courierDTOTest.getArgument())
         );
     }
 

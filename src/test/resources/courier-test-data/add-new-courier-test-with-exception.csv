@@ -4,11 +4,12 @@ ru.bevz.yd.exception.EntityAlreadyExistsException, 1, foot, 14 15, 10:00-13:00 1
 ru.bevz.yd.exception.EntityAlreadyExistsException, 2, bike, 14, 10:00-13:00
 
 ru.bevz.yd.exception.EntityNotExistsException, 10, feet, 15 12, 10:00-13:00 16:00-19:00
-ru.bevz.yd.exception.EntityNotExistsException, 11, bke, 1, 10:00-13:00;
+ru.bevz.yd.exception.EntityNotExistsException, 11, bke, 1, 10:00-13:00
 
-ru.bevz.yd.exception.EntityNotExistsException, 12, bike, null, 13:00-16:00
-ru.bevz.yd.exception.EntityNotExistsException, 15, foot, 14, 13:0-016:00
-ru.bevz.yd.exception.EntityNotExistsException, 13, car, 5, null
-ru.bevz.yd.exception.EntityNotExistsException, 14, car, 0, null
-ru.bevz.yd.exception.EntityNotExistsException, 15, null, 0, null
-
+java.lang.NullPointerException, 12, bike, nullList, 13:00-16:00
+javax.validation.ValidationException, 16, bike, null null 13, 13:00-16:00
+javax.validation.ValidationException, 15, foot, 14 11, 13:0-016:00
+javax.validation.ValidationException, 13, car, 17 13, null
+javax.validation.ValidationException, 14, car, 0, null
+javax.validation.ValidationException, 17, null, 0, null
+javax.validation.ValidationException, -24, bike, 4 1, 10:00-13:00

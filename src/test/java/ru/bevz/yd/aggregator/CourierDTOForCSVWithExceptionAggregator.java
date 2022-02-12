@@ -30,9 +30,9 @@ public class CourierDTOForCSVWithExceptionAggregator implements ArgumentsAggrega
                         new CourierDTO()
                                 .setId(arguments.getInteger(1))
                                 .setType(arguments.getString(2))
-                                .setRegions(
+                                .setRegions(arguments.getString(3).equals("nullList") ? null :
                                         Arrays.stream(arguments.getString(3).split(" "))
-                                                .map(Integer::parseInt)
+                                                .map(val -> val.equals("null") ? 0 : Integer.parseInt(val))
                                                 .collect(Collectors.toSet())
                                 )
                                 .setTimePeriods(
