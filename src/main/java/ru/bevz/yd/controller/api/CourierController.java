@@ -44,7 +44,7 @@ public class CourierController {
                 .map(courierMapper::toCourierDto)
                 .toList();
 
-        CourierDTO courierDTO = courierService.addNewCouriers(courierDTOList);
+        CourierDTO courierDTO = courierService.createCouriers(courierDTOList);
 
         CouriersCreatedResponse response = courierMapper.toCouriersCreatedResponse(courierDTO);
 
@@ -82,7 +82,7 @@ public class CourierController {
 
         CourierDTO courierDTO = new CourierDTO().setId(courierId);
 
-        courierDTO = courierService.getCourierInfoById(courierDTO);
+        courierDTO = courierService.getCourier(courierDTO);
 
         CourierInfoResponse response = courierMapper.toCourierInfoResponse(courierDTO);
 

@@ -1,10 +1,14 @@
 package ru.bevz.yd.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,10 +23,10 @@ public class CourierInfo {
 
     @JsonProperty("regions")
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
-    private List<Integer> regions;
+    private List<Integer> regions = new ArrayList<>();
 
     @JsonProperty("working_hours")
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
-    private List<String> workingHours;
+    private List<String> workingHours = new ArrayList<>();
 
 }
