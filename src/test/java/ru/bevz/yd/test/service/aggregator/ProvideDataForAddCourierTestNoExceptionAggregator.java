@@ -1,4 +1,4 @@
-package ru.bevz.yd.aggregator;
+package ru.bevz.yd.test.service.aggregator;
 
 
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -6,19 +6,19 @@ import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
 import ru.bevz.yd.dto.model.CourierDTO;
-import ru.bevz.yd.pojo.CourierDTOForCSVNoException;
+import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierTestNoException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class CourierDTOForCSVNoExceptionAggregator implements ArgumentsAggregator {
+public class ProvideDataForAddCourierTestNoExceptionAggregator implements ArgumentsAggregator {
 
     @Override
-    public CourierDTOForCSVNoException aggregateArguments(
+    public ProvideDataForAddCourierTestNoException aggregateArguments(
             ArgumentsAccessor arguments,
             ParameterContext context
     ) throws ArgumentsAggregationException {
-        return new CourierDTOForCSVNoException()
+        return new ProvideDataForAddCourierTestNoException()
                 .setExpected(
                         new CourierDTO()
                                 .setId(arguments.getInteger(0))

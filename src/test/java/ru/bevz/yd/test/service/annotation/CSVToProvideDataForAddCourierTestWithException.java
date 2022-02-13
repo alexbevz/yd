@@ -1,8 +1,7 @@
-package ru.bevz.yd.annotation;
+package ru.bevz.yd.test.service.annotation;
 
 import org.junit.jupiter.params.aggregator.AggregateWith;
-import ru.bevz.yd.aggregator.CourierDTOForCSVNoExceptionAggregator;
-import ru.bevz.yd.aggregator.CourierDTOForCSVWithExceptionAggregator;
+import ru.bevz.yd.test.service.aggregator.ProvideDataForAddCourierTestWithExceptionAggregator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,6 +10,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-@AggregateWith(CourierDTOForCSVWithExceptionAggregator.class)
-public @interface CSVToCourierDTOWithException {
+@AggregateWith(ProvideDataForAddCourierTestWithExceptionAggregator.class)
+public @interface CSVToProvideDataForAddCourierTestWithException {
 }
