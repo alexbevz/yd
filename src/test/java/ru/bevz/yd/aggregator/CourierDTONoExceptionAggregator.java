@@ -11,7 +11,7 @@ import ru.bevz.yd.pojo.CourierDTOForCSVNoException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class CourierDTOForCSVNoExceptionAggregator implements ArgumentsAggregator {
+public class CourierDTONoExceptionAggregator implements ArgumentsAggregator {
 
     @Override
     public CourierDTOForCSVNoException aggregateArguments(

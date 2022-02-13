@@ -12,7 +12,7 @@ import ru.bevz.yd.pojo.CourierDTOForCSVWithException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class CourierDTOForCSVWithExceptionAggregator implements ArgumentsAggregator {
+public class CourierDTOWithExceptionAggregator implements ArgumentsAggregator {
 
     @SneakyThrows
     @Override
