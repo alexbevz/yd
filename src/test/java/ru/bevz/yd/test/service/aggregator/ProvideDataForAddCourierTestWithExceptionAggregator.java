@@ -1,4 +1,4 @@
-package ru.bevz.yd.aggregator;
+package ru.bevz.yd.test.service.aggregator;
 
 
 import lombok.SneakyThrows;
@@ -7,20 +7,20 @@ import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
 import ru.bevz.yd.dto.model.CourierDTO;
-import ru.bevz.yd.pojo.CourierDTOForCSVWithException;
+import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierWithException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class CourierDTOWithExceptionAggregator implements ArgumentsAggregator {
+public class ProvideDataForAddCourierTestWithExceptionAggregator implements ArgumentsAggregator {
 
     @SneakyThrows
     @Override
-    public CourierDTOForCSVWithException aggregateArguments(
+    public ProvideDataForAddCourierWithException aggregateArguments(
             ArgumentsAccessor arguments,
             ParameterContext context
     ) throws ArgumentsAggregationException {
-        return new CourierDTOForCSVWithException()
+        return new ProvideDataForAddCourierWithException()
                 .setExpectedException(
                         (Class<Throwable>) Class.forName(
                                 arguments.getString(0)
