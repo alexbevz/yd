@@ -27,6 +27,6 @@ public interface CourierRepository extends JpaRepository<Courier, Integer> {
                     "WHERE status = 'COMPLETED' AND courier_id = :courierId ;"
             , nativeQuery = true
     )
-    Optional<Integer> getEarningsByCourierIdAndAwardForContract(int courierId, float award);
+    Optional<Integer> getEarningsByCourierIdAndAwardForOrder(int courierId, float award);
 
 }

@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Data
 @Accessors(chain = true)
-public class ContractDTO {
+public class OrderDTO {
 
     private int id;
 
@@ -20,7 +20,7 @@ public class ContractDTO {
 
     private Set<String> timePeriods = new HashSet<>();
 
-    private List<Integer> idContracts = new ArrayList<>();
+    private List<Integer> idOrders= new ArrayList<>();
 
     private String datetimeAssign;
 

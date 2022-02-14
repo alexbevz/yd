@@ -19,8 +19,8 @@ import java.util.Set;
 @Accessors(chain = true)
 @Entity
 @Table(name = "\"order\"")
-@TypeDef(name = "status_order", typeClass = PostgreSQLStatusContract.class)
-public class Contract {
+@TypeDef(name = "status_order", typeClass = PostgreSQLStatusOrder.class)
+public class Order {
 
     @Id
     @Column(name = "id")
@@ -36,7 +36,7 @@ public class Contract {
     @Enumerated(EnumType.STRING)
     @Type(type = "status_order")
     @Column(name = "status")
-    private StatusContract status;
+    private StatusOrder status;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

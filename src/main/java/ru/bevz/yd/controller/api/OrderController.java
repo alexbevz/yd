@@ -19,8 +19,8 @@ import ru.bevz.yd.controller.response.OrdersAssignOKResponse;
 import ru.bevz.yd.controller.response.OrdersCompleteOKResponse;
 import ru.bevz.yd.controller.response.OrdersCreatedResponse;
 import ru.bevz.yd.dto.mapper.OrderMapper;
-import ru.bevz.yd.dto.model.ContractDTO;
-import ru.bevz.yd.service.ContractService;
+import ru.bevz.yd.dto.model.OrderDTO;
+import ru.bevz.yd.service.OrderService;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ import java.util.List;
 public class OrderController {
 
     @Autowired
-    private ContractService contractService;
+    private OrderService orderService;
 
     @Autowired
     private OrderMapper orderMapper;
@@ -51,12 +51,12 @@ public class OrderController {
             @RequestBody OrdersRequest ordersRequest
     ) {
 
-        List<ContractDTO> contractDTOs = ordersRequest.getOrderInfos()
+        List<OrderDTO> orderDTOS = ordersRequest.getOrderInfos()
                 .stream()
-                .map(orderMapper::toContractDTO)
+                .map(orderMapper::toOrderDTO)
                 .toList();
 
-        ContractDTO courierDto = contractService.addContracts(contractDTOs);
+        OrderDTO courierDto = orderService.addOrders(orderDTOS);
 
         OrdersCreatedResponse response = orderMapper.toOrdersCreatedResponse(courierDto);
 
@@ -72,11 +72,11 @@ public class OrderController {
             @RequestBody CourierInfo courierInfo
     ) {
 
-        ContractDTO contractDto = new ContractDTO().setCourierId(courierInfo.getId());
+        OrderDTO orderDto = new OrderDTO().setCourierId(courierInfo.getId());
 
-        contractDto = contractService.assignContracts(contractDto);
+        orderDto = orderService.assignOrders(orderDto);
 
-        OrdersAssignOKResponse response = orderMapper.toOrdersAssignOKResponse(contractDto);
+        OrdersAssignOKResponse response = orderMapper.toOrdersAssignOKResponse(orderDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -90,11 +90,11 @@ public class OrderController {
             @RequestBody CompletedOrderRequest completedOrderRequest
     ) {
 
-        ContractDTO contractDto = orderMapper.toContractDTO(completedOrderRequest);
+        OrderDTO orderDto = orderMapper.toOrderDTO(completedOrderRequest);
 
-        contractDto = contractService.completeContract(contractDto);
+        orderDto = orderService.completeOrder(orderDto);
 
-        OrdersCompleteOKResponse response = orderMapper.toOrderCompleteOKResponse(contractDto);
+        OrdersCompleteOKResponse response = orderMapper.toOrderCompleteOKResponse(orderDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

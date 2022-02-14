@@ -3,18 +3,18 @@ package ru.bevz.yd.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import ru.bevz.yd.model.Contract;
+import ru.bevz.yd.model.Order;
 import ru.bevz.yd.model.Courier;
-import ru.bevz.yd.model.StatusContract;
+import ru.bevz.yd.model.StatusOrder;
 
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 
 @Repository
-public interface ContractRepository extends JpaRepository<Contract, Integer> {
+public interface OrderRepository extends JpaRepository<Order, Integer> {
 
-    Set<Contract> getAllByCourierAndStatus(Courier courier, StatusContract statusContract);
+    Set<Order> getAllByCourierAndStatus(Courier courier, StatusOrder statusOrder);
 
     @Query(
             value = "SELECT DISTINCT ord.*\n" +
@@ -30,7 +30,7 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "    OR courtp.left_limit >= ordtp.left_limit AND courtp.right_limit <= ordtp.right_limit)",
             nativeQuery = true
     )
-    Set<Contract> getContractsForAssigned(
+    Set<Order> getOrdersForAssigned(
             Set<Integer> courierIdRegionList,
             Set<Integer> courierIdTimePeriodList,
             float courierCapacity
@@ -46,7 +46,7 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "LIMIT 1",
             nativeQuery = true
     )
-    Optional<Contract> getLastCompletedContract(int courierId, LocalDate dateRealization);
+    Optional<Order> getLastCompletedOrder(int courierId, LocalDate dateRealization);
 
     @Query(
             value = "SELECT *\n" +
@@ -56,7 +56,7 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "  AND weight > :capacity",
             nativeQuery = true
     )
-    Set<Contract> getContractsForRemoveByCapacity(int courierId, float capacity);
+    Set<Order> getOrdersForRemoveByCapacity(int courierId, float capacity);
 
 
     @Query(
@@ -67,7 +67,7 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "  AND region_id NOT IN :regionIdList",
             nativeQuery = true
     )
-    Set<Contract> getContractsForRemoveByRegion(int courierId, Set<Integer> regionIdList);
+    Set<Order> getOrdersForRemoveByRegion(int courierId, Set<Integer> regionIdList);
 
     @Query(
             value = "SELECT DISTINCT *\n" +
@@ -82,6 +82,6 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
                     "    OR courtp.left_limit >= ordtp.left_limit AND courtp.right_limit <= ordtp.right_limit)",
             nativeQuery = true
     )
-    Set<Contract> getContractsForRemoveByTimePeriod(int courierId, Set<Integer> timePeriodIdList);
+    Set<Order> getOrdersForRemoveByTimePeriod(int courierId, Set<Integer> timePeriodIdList);
 
 }

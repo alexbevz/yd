@@ -8,7 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
-public class PostgreSQLStatusContract extends EnumType<StatusContract> {
+public class PostgreSQLStatusOrder extends EnumType<StatusOrder> {
 
     @Override
     public void nullSafeSet(
@@ -18,7 +18,7 @@ public class PostgreSQLStatusContract extends EnumType<StatusContract> {
     ) throws HibernateException, SQLException {
         st.setObject(
                 index,
-                value != null ? ((StatusContract) value).name() : null,
+                value != null ? ((StatusOrder) value).name() : null,
                 Types.OTHER
         );
     }
