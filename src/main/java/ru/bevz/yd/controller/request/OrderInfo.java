@@ -10,12 +10,12 @@ import javax.validation.constraints.*;
 import java.util.List;
 
 @Data
-public class ContractInfo {
+public class OrderInfo {
 
     @JsonProperty("order_id")
     @Schema(
             required = true,
-            description = "Индетификатор контракта",
+            description = "Индетификатор заказа",
             example = "25",
             type = "integer"
     )

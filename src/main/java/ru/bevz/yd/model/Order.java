@@ -18,9 +18,9 @@ import java.util.Set;
 @ToString
 @Accessors(chain = true)
 @Entity
-@Table(name = "contract")
-@TypeDef(name = "status_contract", typeClass = PostgreSQLStatusContract.class)
-public class Contract {
+@Table(name = "\"order\"")
+@TypeDef(name = "status_order", typeClass = PostgreSQLStatusOrder.class)
+public class Order {
 
     @Id
     @Column(name = "id")
@@ -34,14 +34,14 @@ public class Contract {
     private float weight;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = "status_contract")
+    @Type(type = "status_order")
     @Column(name = "status")
-    private StatusContract status;
+    private StatusOrder status;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "contract_time_period",
-            joinColumns = @JoinColumn(name = "contract_id"),
+            name = "order_time_period",
+            joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "time_period_id")
     )
     private Set<TimePeriod> timePeriods;

@@ -7,13 +7,13 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ContractsRequest {
+public class OrdersRequest {
 
     @JsonProperty("data")
     @Schema(
             required = true,
             description = "Список заказов"
     )
-    private List<ContractInfo> contractInfos;
+    private List<OrderInfo> orderInfos;
 
 }

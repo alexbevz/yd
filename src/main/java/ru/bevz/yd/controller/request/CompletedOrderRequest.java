@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class CompletedContractRequest {
+public class CompletedOrderRequest {
 
     @JsonProperty("courier_id")
     private int courierId;
 
     @JsonProperty("order_id")
-    private int contractId;
+    private int orderId;
 
     @JsonProperty("complete_time")
     private String dateTimeCompleted;

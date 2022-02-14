@@ -2,7 +2,7 @@ package ru.bevz.yd.constant;
 
 public class GlobalConstant {
 
-    public static final float AWARD_FOR_CONTRACT = 500;
+    public static final float AWARD_FOR_ORDER = 500;
 
     public static final String ENTITY_EXISTS_EXP =
             "The entity already exists:\n";

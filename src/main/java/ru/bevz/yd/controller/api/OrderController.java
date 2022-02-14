@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.bevz.yd.controller.request.CompletedContractRequest;
-import ru.bevz.yd.controller.request.ContractsRequest;
+import ru.bevz.yd.controller.request.CompletedOrderRequest;
+import ru.bevz.yd.controller.request.OrdersRequest;
 import ru.bevz.yd.controller.request.CourierInfo;
-import ru.bevz.yd.controller.response.ContractsAssignOKResponse;
-import ru.bevz.yd.controller.response.ContractsCompleteOKResponse;
-import ru.bevz.yd.controller.response.ContractsCreatedResponse;
-import ru.bevz.yd.dto.mapper.ContractMapper;
-import ru.bevz.yd.dto.model.ContractDTO;
-import ru.bevz.yd.service.ContractService;
+import ru.bevz.yd.controller.response.OrdersAssignOKResponse;
+import ru.bevz.yd.controller.response.OrdersCompleteOKResponse;
+import ru.bevz.yd.controller.response.OrdersCreatedResponse;
+import ru.bevz.yd.dto.mapper.OrderMapper;
+import ru.bevz.yd.dto.model.OrderDTO;
+import ru.bevz.yd.service.OrderService;
 
 import java.util.List;
 
@@ -30,13 +30,13 @@ import java.util.List;
         name = "Контроллер заказов",
         description = "Обслуживает запросы связанные с заказами"
 )
-public class ContractController {
+public class OrderController {
 
     @Autowired
-    private ContractService contractService;
+    private OrderService orderService;
 
     @Autowired
-    private ContractMapper contractMapper;
+    private OrderMapper orderMapper;
 
     @PostMapping("")
     @Operation(
@@ -45,20 +45,20 @@ public class ContractController {
     )
     @ApiResponse(
             responseCode = "201",
-            content = @Content(schema = @Schema(implementation = ContractsCreatedResponse.class))
+            content = @Content(schema = @Schema(implementation = OrdersCreatedResponse.class))
     )
-    public ResponseEntity<Object> createContracts(
-            @RequestBody ContractsRequest contractsRequest
+    public ResponseEntity<Object> createOrders(
+            @RequestBody OrdersRequest ordersRequest
     ) {
 
-        List<ContractDTO> contractDTOs = contractsRequest.getContractInfos()
+        List<OrderDTO> orderDTOS = ordersRequest.getOrderInfos()
                 .stream()
-                .map(contractMapper::toContractDTO)
+                .map(orderMapper::toOrderDTO)
                 .toList();
 
-        ContractDTO courierDto = contractService.addContracts(contractDTOs);
+        OrderDTO courierDto = orderService.addOrders(orderDTOS);
 
-        ContractsCreatedResponse response = contractMapper.toContractsCreatedResponse(courierDto);
+        OrdersCreatedResponse response = orderMapper.toOrdersCreatedResponse(courierDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -68,15 +68,15 @@ public class ContractController {
             summary = "Назначение заказов",
             description = "Позволяет назначить заказы выбранному курьеру по его характеристиками"
     )
-    public ResponseEntity<Object> assignContracts(
+    public ResponseEntity<Object> assignOrders(
             @RequestBody CourierInfo courierInfo
     ) {
 
-        ContractDTO contractDto = new ContractDTO().setCourierId(courierInfo.getId());
+        OrderDTO orderDto = new OrderDTO().setCourierId(courierInfo.getId());
 
-        contractDto = contractService.assignContracts(contractDto);
+        orderDto = orderService.assignOrders(orderDto);
 
-        ContractsAssignOKResponse response = contractMapper.toContractsAssignOKResponse(contractDto);
+        OrdersAssignOKResponse response = orderMapper.toOrdersAssignOKResponse(orderDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -86,15 +86,15 @@ public class ContractController {
             summary = "Выполнение заказа",
             description = "Позволяет отметить заказ выполненным для опредленного курьера"
     )
-    public ResponseEntity<Object> completeContract(
-            @RequestBody CompletedContractRequest completedContractRequest
+    public ResponseEntity<Object> completeOrder(
+            @RequestBody CompletedOrderRequest completedOrderRequest
     ) {
 
-        ContractDTO contractDto = contractMapper.toContractDTO(completedContractRequest);
+        OrderDTO orderDto = orderMapper.toOrderDTO(completedOrderRequest);
 
-        contractDto = contractService.completeContract(contractDto);
+        orderDto = orderService.completeOrder(orderDto);
 
-        ContractsCompleteOKResponse response = contractMapper.toContractCompleteOKResponse(contractDto);
+        OrdersCompleteOKResponse response = orderMapper.toOrderCompleteOKResponse(orderDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

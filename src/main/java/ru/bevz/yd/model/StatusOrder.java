@@ -1,6 +1,6 @@
 package ru.bevz.yd.model;
 
-public enum StatusContract {
+public enum StatusOrder {
     UNASSIGNED,
     ASSIGNED,
     COMPLETED

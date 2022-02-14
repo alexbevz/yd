@@ -10,7 +10,7 @@ import ru.bevz.yd.exception.EntityAlreadyExistsException;
 import ru.bevz.yd.exception.EntityNotExistsException;
 import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.model.*;
-import ru.bevz.yd.repository.ContractRepository;
+import ru.bevz.yd.repository.OrderRepository;
 import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 
@@ -36,7 +36,7 @@ public class CourierService {
     private TypeCourierRepository typeCourierRep;
 
     @Autowired
-    private ContractRepository contractRep;
+    private OrderRepository orderRep;
 
     @Autowired
     private CourierMapper courierMapper;
@@ -46,9 +46,9 @@ public class CourierService {
         if (!courierRep.existsById(courierId)) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
-        return courierRep.getEarningsByCourierIdAndAwardForContract(
+        return courierRep.getEarningsByCourierIdAndAwardForOrder(
                 courierId,
-                GlobalConstant.AWARD_FOR_CONTRACT
+                GlobalConstant.AWARD_FOR_ORDER
         ).orElse(0);
     }
 
@@ -145,12 +145,12 @@ public class CourierService {
             TypeCourier newTypeCourier = newTypeCourierOptional.get();
 
             if (originalCourier.getTypeCourier().getCapacity() > newTypeCourier.getCapacity()) {
-                Set<Contract> contractsForRemove =
-                        contractRep.getContractsForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
-                for (Contract contract : contractsForRemove) {
-                    contract.setStatus(StatusContract.UNASSIGNED);
-                    contract.setCourier(null);
-                    contract.setDatetimeAssignment(null);
+                Set<Order> ordersForRemove =
+                        orderRep.getOrdersForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
+                for (Order order : ordersForRemove) {
+                    order.setStatus(StatusOrder.UNASSIGNED);
+                    order.setCourier(null);
+                    order.setDatetimeAssignment(null);
                 }
             }
             originalCourier.setTypeCourier(newTypeCourier);
@@ -162,18 +162,18 @@ public class CourierService {
                     secondaryServ.getOrSaveRegionsByNumber(courierDTO.getRegions());
 
             if (!originalCourier.getRegions().containsAll(newRegions)) {
-                Set<Contract> contractListForRemove =
-                        contractRep.getContractsForRemoveByRegion(
+                Set<Order> orderListForRemove =
+                        orderRep.getOrdersForRemoveByRegion(
                                 courierId,
                                 newRegions
                                         .stream()
                                         .map(Region::getId)
                                         .collect(Collectors.toSet())
                         );
-                for (Contract contract : contractListForRemove) {
-                    contract.setStatus(StatusContract.UNASSIGNED);
-                    contract.setCourier(null);
-                    contract.setDatetimeAssignment(null);
+                for (Order order : orderListForRemove) {
+                    order.setStatus(StatusOrder.UNASSIGNED);
+                    order.setCourier(null);
+                    order.setDatetimeAssignment(null);
                 }
                 originalCourier.setRegions(newRegions);
             }
@@ -185,18 +185,18 @@ public class CourierService {
                     secondaryServ.getOrSaveTimePeriodsByString(courierDTO.getTimePeriods());
 
             if (!originalCourier.getTimePeriods().containsAll(newTimePeriods)) {
-                Set<Contract> contractsForRemove =
-                        contractRep.getContractsForRemoveByTimePeriod(
+                Set<Order> ordersForRemove =
+                        orderRep.getOrdersForRemoveByTimePeriod(
                                 courierId,
                                 newTimePeriods
                                         .stream()
                                         .map(TimePeriod::getId)
                                         .collect(Collectors.toSet())
                         );
-                for (Contract contract : contractsForRemove) {
-                    contract.setStatus(StatusContract.UNASSIGNED);
-                    contract.setCourier(null);
-                    contract.setDatetimeAssignment(null);
+                for (Order order : ordersForRemove) {
+                    order.setStatus(StatusOrder.UNASSIGNED);
+                    order.setCourier(null);
+                    order.setDatetimeAssignment(null);
                 }
                 originalCourier.setTimePeriods(newTimePeriods);
             }

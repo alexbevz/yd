@@ -8,10 +8,10 @@ import ru.bevz.yd.controller.IdList;
 
 @Data
 @Accessors(chain = true)
-public class ContractsCreatedResponse {
+public class OrdersCreatedResponse {
 
     @JsonProperty("orders")
     @Schema(description = "Список заказов")
-    private IdList contracts;
+    private IdList orders;
 
 }
