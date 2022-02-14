@@ -2,13 +2,12 @@ package ru.bevz.yd.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.bevz.yd.dto.mapper.ContractMapper;
+import ru.bevz.yd.dto.mapper.OrderMapper;
 import ru.bevz.yd.dto.model.ContractDTO;
 import ru.bevz.yd.exception.*;
 import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.ContractRepository;
 import ru.bevz.yd.repository.CourierRepository;
-import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -34,7 +33,7 @@ public class ContractService {
     private CourierRepository courierRep;
 
     @Autowired
-    private ContractMapper contractMapper;
+    private OrderMapper orderMapper;
 
     @Transactional
     public ContractDTO addContracts(List<ContractDTO> contractDTOs) {
@@ -80,7 +79,7 @@ public class ContractService {
         contract.setTimePeriods(secondaryServ.getOrSaveTimePeriodsByString(contractDTO.getTimePeriods()));
         contract.setStatus(StatusContract.UNASSIGNED);
 
-        return contractMapper.toContractDTO(contractRep.save(contract));
+        return orderMapper.toContractDTO(contractRep.save(contract));
     }
 
     @Transactional

@@ -3,11 +3,11 @@ package ru.bevz.yd.dto.mapper;
 import org.springframework.stereotype.Component;
 import ru.bevz.yd.controller.Id;
 import ru.bevz.yd.controller.IdList;
-import ru.bevz.yd.controller.request.CompletedContractRequest;
-import ru.bevz.yd.controller.request.ContractInfo;
-import ru.bevz.yd.controller.response.ContractsAssignOKResponse;
-import ru.bevz.yd.controller.response.ContractsCompleteOKResponse;
-import ru.bevz.yd.controller.response.ContractsCreatedResponse;
+import ru.bevz.yd.controller.request.CompletedOrderRequest;
+import ru.bevz.yd.controller.request.OrderInfo;
+import ru.bevz.yd.controller.response.OrdersAssignOKResponse;
+import ru.bevz.yd.controller.response.OrdersCompleteOKResponse;
+import ru.bevz.yd.controller.response.OrdersCreatedResponse;
 import ru.bevz.yd.dto.model.ContractDTO;
 import ru.bevz.yd.model.Contract;
 import ru.bevz.yd.util.DateTimeUtils;
@@ -16,21 +16,21 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Component
-public class ContractMapper {
+public class OrderMapper {
 
-    public ContractDTO toContractDTO(ContractInfo contractInfo) {
+    public ContractDTO toContractDTO(OrderInfo orderInfo) {
         return new ContractDTO()
-                .setId(contractInfo.getId())
-                .setWeight(contractInfo.getWeight())
-                .setRegion(contractInfo.getRegion())
-                .setTimePeriods(new HashSet<>(contractInfo.getDeliveryHours()));
+                .setId(orderInfo.getId())
+                .setWeight(orderInfo.getWeight())
+                .setRegion(orderInfo.getRegion())
+                .setTimePeriods(new HashSet<>(orderInfo.getDeliveryHours()));
     }
 
-    public ContractDTO toContractDTO(CompletedContractRequest completedContractRequest) {
+    public ContractDTO toContractDTO(CompletedOrderRequest completedOrderRequest) {
         return new ContractDTO()
-                .setId(completedContractRequest.getContractId())
-                .setCourierId(completedContractRequest.getCourierId())
-                .setDatetimeComplete(completedContractRequest.getDateTimeCompleted());
+                .setId(completedOrderRequest.getOrderId())
+                .setCourierId(completedOrderRequest.getCourierId())
+                .setDatetimeComplete(completedOrderRequest.getDateTimeCompleted());
     }
 
     public ContractDTO toContractDTO(Contract contract) {
@@ -47,8 +47,8 @@ public class ContractMapper {
 
     }
 
-    public ContractsAssignOKResponse toContractsAssignOKResponse(ContractDTO contractDTO) {
-        return new ContractsAssignOKResponse().setIdContracts(
+    public OrdersAssignOKResponse toOrdersAssignOKResponse(ContractDTO contractDTO) {
+        return new OrdersAssignOKResponse().setIdOrders(
                         new IdList().setIdList(
                                 contractDTO.getIdContracts()
                                         .stream()
@@ -59,13 +59,13 @@ public class ContractMapper {
                 .setTimeAssigned(contractDTO.getDatetimeAssign());
     }
 
-    public ContractsCompleteOKResponse toContractCompleteOKResponse(ContractDTO contractDTO) {
-        return new ContractsCompleteOKResponse()
-                .setContractId(contractDTO.getCourierId());
+    public OrdersCompleteOKResponse toOrderCompleteOKResponse(ContractDTO contractDTO) {
+        return new OrdersCompleteOKResponse()
+                .setOrderId(contractDTO.getCourierId());
     }
 
-    public ContractsCreatedResponse toContractsCreatedResponse(ContractDTO contractDTO) {
-        return new ContractsCreatedResponse().setContracts(
+    public OrdersCreatedResponse toOrdersCreatedResponse(ContractDTO contractDTO) {
+        return new OrdersCreatedResponse().setOrders(
                 new IdList().setIdList(
                         contractDTO.getIdContracts()
                                 .stream()

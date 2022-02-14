@@ -8,10 +8,10 @@ import ru.bevz.yd.controller.IdList;
 
 @Data
 @Accessors(chain = true)
-public class ContractsAssignOKResponse {
+public class OrdersAssignOKResponse {
 
-    @JsonProperty("contracts")
-    private IdList idContracts;
+    @JsonProperty("orders")
+    private IdList idOrders;
 
     @JsonProperty("assign_time")
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)

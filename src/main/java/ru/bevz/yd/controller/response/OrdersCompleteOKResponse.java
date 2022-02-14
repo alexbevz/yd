@@ -6,9 +6,9 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class ContractsCompleteOKResponse {
+public class OrdersCompleteOKResponse {
 
     @JsonProperty("order_id")
-    private int contractId;
+    private int orderId;
 
 }
