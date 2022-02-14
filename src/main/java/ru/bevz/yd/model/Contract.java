@@ -18,7 +18,7 @@ import java.util.Set;
 @ToString
 @Accessors(chain = true)
 @Entity
-@Table(name = "order")
+@Table(name = "\"order\"")
 @TypeDef(name = "status_order", typeClass = PostgreSQLStatusContract.class)
 public class Contract {
 
