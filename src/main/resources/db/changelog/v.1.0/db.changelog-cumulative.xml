@@ -8,4 +8,5 @@
     <include file="${path-v.1.0}db.changelog-1.02-edited-contract-added-column.xml"/>
     <include file="${path-v.1.0}db.changelog-1.03-added-function-to-seconds-from-time.xml"/>
     <include file="${path-v.1.0}db.changelog-1.04-added-column-type-courier-to-contract.xml"/>
+    <include file="${path-v.1.0}db.changelog-1.05-renamed-table-contract-to-order.xml"/>
 </databaseChangeLog>
