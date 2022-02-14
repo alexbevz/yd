@@ -10,8 +10,8 @@ import ru.bevz.yd.exception.EntityAlreadyExistsException;
 import ru.bevz.yd.exception.EntityNotExistsException;
 import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.model.*;
-import ru.bevz.yd.repository.OrderRepository;
 import ru.bevz.yd.repository.CourierRepository;
+import ru.bevz.yd.repository.OrderRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 
 import javax.transaction.Transactional;

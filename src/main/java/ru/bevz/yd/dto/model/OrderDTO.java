@@ -20,7 +20,7 @@ public class OrderDTO {
 
     private Set<String> timePeriods = new HashSet<>();
 
-    private List<Integer> idOrders= new ArrayList<>();
+    private List<Integer> idOrders = new ArrayList<>();
 
     private String datetimeAssign;
 
