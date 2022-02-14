@@ -48,7 +48,9 @@ public class CourierServiceTest {
     @Rule
     public PreparedDbRule db =
             EmbeddedPostgresRules.preparedDatabase(
-                    LiquibasePreparer.forClasspathLocation(CHANGELOG_MASTER_TEST_PATH));
+                    LiquibasePreparer.forClasspathLocation(CHANGELOG_MASTER_TEST_PATH)
+            );
+
     @Autowired
     private CourierService courierService;
 
