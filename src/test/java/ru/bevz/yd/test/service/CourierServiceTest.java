@@ -1,6 +1,9 @@
 package ru.bevz.yd.test.service;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import io.zonky.test.db.postgres.embedded.LiquibasePreparer;
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
@@ -10,7 +13,9 @@ import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.bevz.yd.YandexDeliveryApplication;
@@ -19,8 +24,19 @@ import ru.bevz.yd.service.CourierService;
 import ru.bevz.yd.test.service.annotation.CSVToProvideDataForAddCourierTestNoException;
 import ru.bevz.yd.test.service.annotation.CSVToProvideDataForAddCourierTestWithException;
 import ru.bevz.yd.test.service.annotation.CourierSqlGroup;
+import ru.bevz.yd.test.service.pojo.DataForAddCouriersTestNoException;
 import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierTestNoException;
 import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierWithException;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static ru.bevz.yd.test.PathToTestDataConstant.CHANGELOG_MASTER_TEST_PATH;
 import static ru.bevz.yd.test.PathToTestDataConstant.COURIER_SERVICE_PATH;
@@ -60,7 +76,9 @@ public class CourierServiceTest {
             numLinesToSkip = 1
     )
     @DisplayName("Тестирование метода (без исключений): CourierService.addCourier")
-    void addCourierTestNoException(@CSVToProvideDataForAddCourierTestNoException ProvideDataForAddCourierTestNoException courierDTOTest) {
+    void addCourierTestNoException(
+            @CSVToProvideDataForAddCourierTestNoException ProvideDataForAddCourierTestNoException courierDTOTest
+    ) {
 
         CourierDTO result = courierService.createCourier(courierDTOTest.getArgument());
 
@@ -74,7 +92,9 @@ public class CourierServiceTest {
     )
     @CourierSqlGroup
     @DisplayName("Тестирование метода (с исключениями): CourierService.addCourier")
-    void addCourierTestWithException(@CSVToProvideDataForAddCourierTestWithException ProvideDataForAddCourierWithException courierDTOTest) {
+    void addCourierTestWithException(
+            @CSVToProvideDataForAddCourierTestWithException ProvideDataForAddCourierWithException courierDTOTest
+    ) {
 
         Assertions.assertThrows(
                 courierDTOTest.getExpectedException(),
@@ -82,24 +102,46 @@ public class CourierServiceTest {
         );
     }
 
-    //TODO: implement test
-    @ParameterizedTest
-    @CsvFileSource(
-            resources = "",
-            numLinesToSkip = 1
-    )
-    void addCouriersTestNoException() {
-
+    //TODO: need to optimize
+    private static Stream<Arguments> provideDataForAddCouriersTestNoException() {
+        Stream<Arguments> arguments = Stream.of();
+        ObjectMapper objectMapper = new JsonMapper();
+        List<DataForAddCouriersTestNoException> data = new ArrayList<>();
+        try {
+            URL url = CourierServiceTest.class.getClassLoader()
+                    .getResource("courier-data/service/add-couriers-no-exception.json");
+            assert url != null;
+            data = objectMapper.readValue(
+                    new File(url.getPath()),
+                    new TypeReference<>() {
+                        @Override
+                        public Type getType() {
+                            return super.getType();
+                        }
+                    }
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (DataForAddCouriersTestNoException dataCourier : data) {
+            arguments = Stream.concat(
+                    arguments,
+                    Stream.of(Arguments.of(dataCourier.getExpected(), dataCourier.getArgument()))
+            );
+        }
+        return arguments;
     }
 
-    //TODO: implement test
     @ParameterizedTest
-    @CsvFileSource(
-            resources = "",
-            numLinesToSkip = 1
-    )
-    void addCouriersTestWithException() {
+    @MethodSource("provideDataForAddCouriersTestNoException")
+    void addCouriersTestNoException(CourierDTO expected, Set<CourierDTO> courierDTOs) {
 
+        CourierDTO result = courierService.createCouriers(courierDTOs.stream().toList());
+
+        Assertions.assertEquals(
+                new HashSet<>(expected.getIdCouriers()),
+                new HashSet<>(result.getIdCouriers())
+        );
     }
 
 }
