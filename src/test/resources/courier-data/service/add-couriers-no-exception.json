@@ -1,0 +1,70 @@
+[
+  {
+    "expected": {
+      "idCouriers": [
+        101,
+        102
+      ]
+    },
+    "argument": [
+      {
+        "id": 101,
+        "type": "foot",
+        "regions": [
+          11,
+          12
+        ],
+        "timePeriods": [
+          "12:00-15:00",
+          "07:00-10:30"
+        ]
+      },
+      {
+        "id": 102,
+        "type": "bike",
+        "regions": [
+          11,
+          12
+        ],
+        "timePeriods": [
+          "12:00-15:00",
+          "07:00-10:40"
+        ]
+      }
+    ]
+  },
+  {
+    "expected": {
+      "idCouriers": [
+        103,
+        104
+      ]
+    },
+    "argument": [
+      {
+        "id": 103,
+        "type": "foot",
+        "regions": [
+          11,
+          12
+        ],
+        "timePeriods": [
+          "12:00-15:00",
+          "07:00-10:30"
+        ]
+      },
+      {
+        "id": 104,
+        "type": "bike",
+        "regions": [
+          11,
+          12
+        ],
+        "timePeriods": [
+          "12:00-15:00",
+          "07:00-10:40"
+        ]
+      }
+    ]
+  }
+]
