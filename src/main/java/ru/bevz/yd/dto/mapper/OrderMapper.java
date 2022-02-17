@@ -53,7 +53,7 @@ public class OrderMapper {
                                 orderDTO.getIdOrders()
                                         .stream()
                                         .map(id -> new Id().setId(id))
-                                        .toList()
+                                        .collect(Collectors.toSet())
                         )
                 )
                 .setTimeAssigned(orderDTO.getDatetimeAssign());
@@ -70,7 +70,7 @@ public class OrderMapper {
                         orderDTO.getIdOrders()
                                 .stream()
                                 .map(id -> new Id().setId(id))
-                                .toList()
+                                .collect(Collectors.toSet())
                 )
         );
     }
