@@ -8,7 +8,7 @@ import ru.bevz.yd.dto.model.CourierDTO;
 import java.util.Set;
 
 @Data
-public class DataForAddCouriersTestNoException {
+public class DataForAddCouriersTestWithException {
 
     @JsonProperty("expected")
     private @JsonIgnoreProperties(ignoreUnknown = true)

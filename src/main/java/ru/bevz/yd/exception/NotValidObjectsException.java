@@ -1,17 +1,14 @@
 package ru.bevz.yd.exception;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import ru.bevz.yd.controller.Id;
 import ru.bevz.yd.controller.IdList;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 public class NotValidObjectsException extends RuntimeException {
 
     private String nameObjects;
@@ -23,7 +20,7 @@ public class NotValidObjectsException extends RuntimeException {
         this.idList = new IdList().setIdList(
                 idList.stream()
                         .map(id -> new Id().setId(id))
-                        .toList()
+                        .collect(Collectors.toSet())
         );
     }
 

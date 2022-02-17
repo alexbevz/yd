@@ -20,11 +20,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.bevz.yd.YandexDeliveryApplication;
 import ru.bevz.yd.dto.model.CourierDTO;
+import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.service.CourierService;
 import ru.bevz.yd.test.service.annotation.CSVToProvideDataForAddCourierTestNoException;
 import ru.bevz.yd.test.service.annotation.CSVToProvideDataForAddCourierTestWithException;
 import ru.bevz.yd.test.service.annotation.CourierSqlGroup;
 import ru.bevz.yd.test.service.pojo.DataForAddCouriersTestNoException;
+import ru.bevz.yd.test.service.pojo.DataForAddCouriersTestWithException;
 import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierTestNoException;
 import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierWithException;
 
@@ -70,6 +72,69 @@ public class CourierServiceTest {
     @Autowired
     private CourierService courierService;
 
+    //TODO: need to optimize
+    private static Stream<Arguments> provideDataForAddCouriersTestNoException() {
+        Stream<Arguments> arguments = Stream.of();
+        ObjectMapper objectMapper = new JsonMapper();
+        List<DataForAddCouriersTestNoException> data = new ArrayList<>();
+        try {
+            URL url = CourierServiceTest.class.getClassLoader()
+                    .getResource("courier-data/service/add-couriers-no-exception.json");
+            assert url != null;
+            data = objectMapper.readValue(
+                    new File(url.getPath()),
+                    new TypeReference<>() {
+                        @Override
+                        public Type getType() {
+                            return super.getType();
+                        }
+                    }
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (DataForAddCouriersTestNoException dataCourier : data) {
+            arguments = Stream.concat(
+                    arguments,
+                    Stream.of(Arguments.of(dataCourier.getExpected(), dataCourier.getArgument()))
+            );
+        }
+        return arguments;
+    }
+
+    //TODO: need to optimize
+    private static Stream<Arguments> provideDataForAddCouriersTestWithException() {
+        Stream<Arguments> arguments = Stream.of();
+        ObjectMapper objectMapper = new JsonMapper();
+        List<DataForAddCouriersTestWithException> data = new ArrayList<>();
+        try {
+            URL url = CourierServiceTest.class.getClassLoader()
+                    .getResource("courier-data/service/add-couriers-with-exception.json");
+            assert url != null;
+            data = objectMapper.readValue(
+                    new File(url.getPath()),
+                    new TypeReference<>() {
+                        @Override
+                        public Type getType() {
+                            return super.getType();
+                        }
+                    }
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (DataForAddCouriersTestWithException dataCourier : data) {
+            arguments = Stream.concat(
+                    arguments,
+                    Stream.of(Arguments.of(
+                            new NotValidObjectsException("couriers", dataCourier.getExpected().getIdCouriers()),
+                            dataCourier.getArgument()
+                    ))
+            );
+        }
+        return arguments;
+    }
+
     @ParameterizedTest
     @CsvFileSource(
             resources = {ADD_COURIER_TEST_NO_EXC},
@@ -102,36 +167,6 @@ public class CourierServiceTest {
         );
     }
 
-    //TODO: need to optimize
-    private static Stream<Arguments> provideDataForAddCouriersTestNoException() {
-        Stream<Arguments> arguments = Stream.of();
-        ObjectMapper objectMapper = new JsonMapper();
-        List<DataForAddCouriersTestNoException> data = new ArrayList<>();
-        try {
-            URL url = CourierServiceTest.class.getClassLoader()
-                    .getResource("courier-data/service/add-couriers-no-exception.json");
-            assert url != null;
-            data = objectMapper.readValue(
-                    new File(url.getPath()),
-                    new TypeReference<>() {
-                        @Override
-                        public Type getType() {
-                            return super.getType();
-                        }
-                    }
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        for (DataForAddCouriersTestNoException dataCourier : data) {
-            arguments = Stream.concat(
-                    arguments,
-                    Stream.of(Arguments.of(dataCourier.getExpected(), dataCourier.getArgument()))
-            );
-        }
-        return arguments;
-    }
-
     @ParameterizedTest
     @MethodSource("provideDataForAddCouriersTestNoException")
     void addCouriersTestNoException(CourierDTO expected, Set<CourierDTO> courierDTOs) {
@@ -142,6 +177,20 @@ public class CourierServiceTest {
                 new HashSet<>(expected.getIdCouriers()),
                 new HashSet<>(result.getIdCouriers())
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideDataForAddCouriersTestWithException")
+    @CourierSqlGroup
+    void addCouriersTestWithException(NotValidObjectsException expected, Set<CourierDTO> courierDTOs) {
+
+        NotValidObjectsException result = new NotValidObjectsException("couriers", new ArrayList<>());
+        try {
+            CourierDTO courierDTO = courierService.createCouriers(courierDTOs.stream().toList());
+        } catch (NotValidObjectsException e) {
+            result = e;
+        }
+        Assertions.assertEquals(expected, result);
     }
 
 }

@@ -77,7 +77,7 @@ public class CourierMapper {
                         courierDTO.getIdCouriers()
                                 .stream()
                                 .map(id -> new Id().setId(id))
-                                .toList()
+                                .collect(Collectors.toSet())
                 )
         );
     }
