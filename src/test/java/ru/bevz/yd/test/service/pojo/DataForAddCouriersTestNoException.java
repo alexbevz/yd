@@ -9,9 +9,13 @@ import java.util.Set;
 
 @Data
 public class DataForAddCouriersTestNoException {
+
     @JsonProperty("expected")
     private @JsonIgnoreProperties(ignoreUnknown = true)
     CourierDTO expected;
+
     @JsonProperty("argument")
-    private @JsonIgnoreProperties(ignoreUnknown = true) Set<CourierDTO> argument;
+    private @JsonIgnoreProperties(ignoreUnknown = true)
+    Set<CourierDTO> argument;
+
 }
