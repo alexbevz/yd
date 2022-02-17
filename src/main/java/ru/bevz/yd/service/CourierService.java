@@ -64,6 +64,7 @@ public class CourierService {
 
     @Transactional
     public CourierDTO createCouriers(@NotNull List<CourierDTO> courierDTOs) {
+        //TODO: appear the problem with this exception. Need it?
         if (courierDTOs.isEmpty()) {
             throw new NullPointerException("Empty data!");
         }
