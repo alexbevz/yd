@@ -9,6 +9,7 @@ import io.zonky.test.db.postgres.embedded.LiquibasePreparer;
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
 import io.zonky.test.db.postgres.junit.PreparedDbRule;
 import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
+import lombok.SneakyThrows;
 import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.bevz.yd.YandexDeliveryApplication;
+import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.service.CourierService;
@@ -31,11 +33,7 @@ import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierTestNoException;
 import ru.bevz.yd.test.service.pojo.ProvideDataForAddCourierWithException;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -72,27 +70,31 @@ public class CourierServiceTest {
     @Autowired
     private CourierService courierService;
 
-    //TODO: need to optimize
-    private static Stream<Arguments> provideDataForAddCouriersTestNoException() {
-        Stream<Arguments> arguments = Stream.of();
+    @SneakyThrows
+    //TODO: try optimize again...
+    private static <T> T readFile(String path, TypeReference<T> reference) {
         ObjectMapper objectMapper = new JsonMapper();
-        List<DataForAddCouriersTestNoException> data = new ArrayList<>();
-        try {
-            URL url = CourierServiceTest.class.getClassLoader()
-                    .getResource("courier-data/service/add-couriers-no-exception.json");
-            assert url != null;
-            data = objectMapper.readValue(
-                    new File(url.getPath()),
-                    new TypeReference<>() {
-                        @Override
-                        public Type getType() {
-                            return super.getType();
+        return objectMapper.readValue(
+                new File(
+                        CourierServiceTest.class.getClassLoader().getResource(path).getPath()
+                ),
+                reference
+        );
+    }
+
+    private static Stream<Arguments> provideDataForAddCouriersTestNoException() {
+        List<DataForAddCouriersTestNoException> data =
+                readFile(
+                        "courier-data/service/add-couriers-no-exception.json",
+                        new TypeReference<>() {
+                            @Override
+                            public Type getType() {
+                                return super.getType();
+                            }
                         }
-                    }
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                );
+
+        Stream<Arguments> arguments = Stream.of();
         for (DataForAddCouriersTestNoException dataCourier : data) {
             arguments = Stream.concat(
                     arguments,
@@ -102,32 +104,27 @@ public class CourierServiceTest {
         return arguments;
     }
 
-    //TODO: need to optimize
     private static Stream<Arguments> provideDataForAddCouriersTestWithException() {
+        List<DataForAddCouriersTestWithException> data =
+                readFile(
+                        "courier-data/service/add-couriers-with-exception.json",
+                        new TypeReference<>() {
+                            @Override
+                            public Type getType() {
+                                return super.getType();
+                            }
+                        });
+
         Stream<Arguments> arguments = Stream.of();
-        ObjectMapper objectMapper = new JsonMapper();
-        List<DataForAddCouriersTestWithException> data = new ArrayList<>();
-        try {
-            URL url = CourierServiceTest.class.getClassLoader()
-                    .getResource("courier-data/service/add-couriers-with-exception.json");
-            assert url != null;
-            data = objectMapper.readValue(
-                    new File(url.getPath()),
-                    new TypeReference<>() {
-                        @Override
-                        public Type getType() {
-                            return super.getType();
-                        }
-                    }
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         for (DataForAddCouriersTestWithException dataCourier : data) {
             arguments = Stream.concat(
                     arguments,
                     Stream.of(Arguments.of(
-                            new NotValidObjectsException("couriers", dataCourier.getExpected().getIdCouriers()),
+                            new NotValidObjectsException()
+                                    .setNameObjects("couriers")
+                                    .setIdList(
+                                            new IdList(dataCourier.getExpected().getIdCouriers())
+                                    ),
                             dataCourier.getArgument()
                     ))
             );
@@ -169,14 +166,12 @@ public class CourierServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideDataForAddCouriersTestNoException")
+    @CourierSqlGroup
     void addCouriersTestNoException(CourierDTO expected, Set<CourierDTO> courierDTOs) {
 
         CourierDTO result = courierService.createCouriers(courierDTOs);
 
-        Assertions.assertEquals(
-                new HashSet<>(expected.getIdCouriers()),
-                new HashSet<>(result.getIdCouriers())
-        );
+        Assertions.assertEquals(expected.getIdCouriers(), result.getIdCouriers());
     }
 
     @ParameterizedTest
@@ -184,13 +179,13 @@ public class CourierServiceTest {
     @CourierSqlGroup
     void addCouriersTestWithException(NotValidObjectsException expected, Set<CourierDTO> courierDTOs) {
 
-        NotValidObjectsException result = new NotValidObjectsException("couriers", new HashSet<>());
         try {
-            CourierDTO courierDTO = courierService.createCouriers(courierDTOs);
-        } catch (NotValidObjectsException e) {
-            result = e;
+            courierService.createCouriers(courierDTOs);
+            Assertions.fail("Not was caught some exceptions!");
+        } catch (NotValidObjectsException result) {
+            Assertions.assertEquals(expected, result);
         }
-        Assertions.assertEquals(expected, result);
+
     }
 
 }

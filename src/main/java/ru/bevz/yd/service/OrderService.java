@@ -2,6 +2,7 @@ package ru.bevz.yd.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.mapper.OrderMapper;
 import ru.bevz.yd.dto.model.OrderDTO;
 import ru.bevz.yd.exception.*;
@@ -49,7 +50,9 @@ public class OrderService {
         }
 
         if (!notValidOrdersId.isEmpty()) {
-            throw new NotValidObjectsException("orders", notValidOrdersId);
+            throw new NotValidObjectsException()
+                    .setNameObjects("orders")
+                    .setIdList(new IdList(notValidOrdersId));
         }
 
         return new OrderDTO().setIdOrders(

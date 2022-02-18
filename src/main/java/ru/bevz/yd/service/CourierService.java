@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.bevz.yd.constant.GlobalConstant;
+import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.exception.EntityAlreadyExistsException;
@@ -78,7 +79,9 @@ public class CourierService {
         }
 
         if (!notValidCouriersId.isEmpty()) {
-            throw new NotValidObjectsException("couriers", notValidCouriersId);
+            throw new NotValidObjectsException()
+                    .setNameObjects("couriers")
+                    .setIdList(new IdList(notValidCouriersId));
         }
 
         return courierMapper.toCourierDTO(courierDTOs);
