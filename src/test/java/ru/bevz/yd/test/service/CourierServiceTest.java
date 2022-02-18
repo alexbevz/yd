@@ -171,7 +171,7 @@ public class CourierServiceTest {
     @MethodSource("provideDataForAddCouriersTestNoException")
     void addCouriersTestNoException(CourierDTO expected, Set<CourierDTO> courierDTOs) {
 
-        CourierDTO result = courierService.createCouriers(courierDTOs.stream().toList());
+        CourierDTO result = courierService.createCouriers(courierDTOs);
 
         Assertions.assertEquals(
                 new HashSet<>(expected.getIdCouriers()),
@@ -184,9 +184,9 @@ public class CourierServiceTest {
     @CourierSqlGroup
     void addCouriersTestWithException(NotValidObjectsException expected, Set<CourierDTO> courierDTOs) {
 
-        NotValidObjectsException result = new NotValidObjectsException("couriers", new ArrayList<>());
+        NotValidObjectsException result = new NotValidObjectsException("couriers", new HashSet<>());
         try {
-            CourierDTO courierDTO = courierService.createCouriers(courierDTOs.stream().toList());
+            CourierDTO courierDTO = courierService.createCouriers(courierDTOs);
         } catch (NotValidObjectsException e) {
             result = e;
         }

@@ -16,8 +16,7 @@ import ru.bevz.yd.repository.TypeCourierRepository;
 
 import javax.transaction.Transactional;
 import javax.validation.ValidationException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -63,13 +62,12 @@ public class CourierService {
     }
 
     @Transactional
-    public CourierDTO createCouriers(@NotNull List<CourierDTO> courierDTOs) {
-        //TODO: appear the problem with this exception. Need it?
+    public CourierDTO createCouriers(@NotNull Set<CourierDTO> courierDTOs) {
         if (courierDTOs.isEmpty()) {
             throw new NullPointerException("Empty data!");
         }
 
-        List<Integer> notValidCouriersId = new ArrayList<>();
+        Set<Integer> notValidCouriersId = new HashSet<>();
         for (CourierDTO courierDto : courierDTOs) {
             try {
                 createCourier(courierDto);

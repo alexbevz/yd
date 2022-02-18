@@ -1,7 +1,6 @@
 package ru.bevz.yd.dto.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.bevz.yd.controller.Id;
 import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.controller.request.CompletedOrderRequest;
 import ru.bevz.yd.controller.request.OrderInfo;
@@ -49,13 +48,7 @@ public class OrderMapper {
 
     public OrdersAssignOKResponse toOrdersAssignOKResponse(OrderDTO orderDTO) {
         return new OrdersAssignOKResponse().setIdOrders(
-                        new IdList().setIdList(
-                                orderDTO.getIdOrders()
-                                        .stream()
-                                        .map(id -> new Id().setId(id))
-                                        .collect(Collectors.toSet())
-                        )
-                )
+                        new IdList(orderDTO.getIdOrders()))
                 .setTimeAssigned(orderDTO.getDatetimeAssign());
     }
 
@@ -66,12 +59,7 @@ public class OrderMapper {
 
     public OrdersCreatedResponse toOrdersCreatedResponse(OrderDTO orderDTO) {
         return new OrdersCreatedResponse().setOrders(
-                new IdList().setIdList(
-                        orderDTO.getIdOrders()
-                                .stream()
-                                .map(id -> new Id().setId(id))
-                                .collect(Collectors.toSet())
-                )
+                new IdList(orderDTO.getIdOrders())
         );
     }
 

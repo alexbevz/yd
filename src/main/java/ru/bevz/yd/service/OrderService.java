@@ -11,8 +11,7 @@ import ru.bevz.yd.repository.OrderRepository;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,9 +35,9 @@ public class OrderService {
     private OrderMapper orderMapper;
 
     @Transactional
-    public OrderDTO addOrders(List<OrderDTO> orderDTOS) {
+    public OrderDTO addOrders(Set<OrderDTO> orderDTOS) {
 
-        List<Integer> notValidOrdersId = new ArrayList<>();
+        Set<Integer> notValidOrdersId = new HashSet<>();
 
         for (OrderDTO orderDto : orderDTOS) {
             try {
@@ -57,7 +56,7 @@ public class OrderService {
                 orderDTOS
                         .stream()
                         .map(OrderDTO::getId)
-                        .toList()
+                        .collect(Collectors.toSet())
         );
     }
 
@@ -107,7 +106,10 @@ public class OrderService {
                             .getDatetimeAssignment()
                             .toString()
             );
-            orderDTO.setIdOrders(orders.stream().map(Order::getId).toList());
+            orderDTO.setIdOrders(orders.stream()
+                    .map(Order::getId)
+                    .collect(Collectors.toSet())
+            );
             return orderDTO;
         }
 
@@ -140,7 +142,7 @@ public class OrderService {
                 orders
                         .stream()
                         .map(Order::getId)
-                        .toList()
+                        .collect(Collectors.toSet())
         );
 
         return orderDTO;

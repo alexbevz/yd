@@ -3,13 +3,13 @@ package ru.bevz.yd.controller.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class CouriersRequest {
 
     @JsonProperty("data")
-    private List<CourierInfo> courierInfos = new ArrayList<>();
+    private Set<CourierInfo> courierInfos = new HashSet<>();
 
 }

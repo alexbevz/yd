@@ -1,7 +1,6 @@
 package ru.bevz.yd.dto.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.bevz.yd.controller.Id;
 import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.controller.request.CourierInfo;
 import ru.bevz.yd.controller.request.CourierPatchRequest;
@@ -12,8 +11,8 @@ import ru.bevz.yd.model.Courier;
 import ru.bevz.yd.model.Region;
 import ru.bevz.yd.util.DateTimeUtils;
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -52,12 +51,12 @@ public class CourierMapper {
                 );
     }
 
-    public CourierDTO toCourierDTO(Collection<CourierDTO> courierDTOs) {
+    public CourierDTO toCourierDTO(Set<CourierDTO> courierDTOs) {
         return new CourierDTO().setIdCouriers(
                 courierDTOs
                         .stream()
                         .map(CourierDTO::getId)
-                        .toList()
+                        .collect(Collectors.toSet())
         );
     }
 
@@ -65,20 +64,15 @@ public class CourierMapper {
         return new CourierInfoResponse()
                 .setId(courierDTO.getId())
                 .setCourierType(courierDTO.getType())
-                .setRegions(courierDTO.getRegions().stream().toList())
-                .setWorkingHours(courierDTO.getTimePeriods().stream().toList())
+                .setRegions(new HashSet<>(courierDTO.getRegions()))
+                .setWorkingHours(new HashSet<>(courierDTO.getTimePeriods()))
                 .setRating(courierDTO.getRating())
                 .setEarnings(courierDTO.getEarnings());
     }
 
     public CouriersCreatedResponse toCouriersCreatedResponse(CourierDTO courierDTO) {
         return new CouriersCreatedResponse().setCouriers(
-                new IdList().setIdList(
-                        courierDTO.getIdCouriers()
-                                .stream()
-                                .map(id -> new Id().setId(id))
-                                .collect(Collectors.toSet())
-                )
+                new IdList(courierDTO.getIdCouriers())
         );
     }
 

@@ -14,7 +14,8 @@ import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDTO;
 import ru.bevz.yd.service.CourierService;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/couriers")
@@ -39,10 +40,10 @@ public class CourierController {
             @RequestBody CouriersRequest couriersRequest
     ) {
 
-        List<CourierDTO> courierDTOList = couriersRequest.getCourierInfos()
+        Set<CourierDTO> courierDTOList = couriersRequest.getCourierInfos()
                 .stream()
                 .map(courierMapper::toCourierDto)
-                .toList();
+                .collect(Collectors.toSet());
 
         CourierDTO courierDTO = courierService.createCouriers(courierDTOList);
 
