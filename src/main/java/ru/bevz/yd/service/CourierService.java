@@ -10,14 +10,13 @@ import ru.bevz.yd.exception.EntityAlreadyExistsException;
 import ru.bevz.yd.exception.EntityNotExistsException;
 import ru.bevz.yd.exception.NotValidObjectsException;
 import ru.bevz.yd.model.*;
-import ru.bevz.yd.repository.OrderRepository;
 import ru.bevz.yd.repository.CourierRepository;
+import ru.bevz.yd.repository.OrderRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
 
 import javax.transaction.Transactional;
 import javax.validation.ValidationException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -63,12 +62,12 @@ public class CourierService {
     }
 
     @Transactional
-    public CourierDTO createCouriers(@NotNull List<CourierDTO> courierDTOs) {
+    public CourierDTO createCouriers(@NotNull Set<CourierDTO> courierDTOs) {
         if (courierDTOs.isEmpty()) {
             throw new NullPointerException("Empty data!");
         }
 
-        List<Integer> notValidCouriersId = new ArrayList<>();
+        Set<Integer> notValidCouriersId = new HashSet<>();
         for (CourierDTO courierDto : courierDTOs) {
             try {
                 createCourier(courierDto);

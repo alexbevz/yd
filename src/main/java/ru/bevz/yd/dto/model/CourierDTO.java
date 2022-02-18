@@ -1,12 +1,9 @@
 package ru.bevz.yd.dto.model;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,7 +18,7 @@ public class CourierDTO {
 
     private Set<String> timePeriods = new HashSet<>();
 
-    private List<Integer> idCouriers = new ArrayList<>();
+    private Set<Integer> idCouriers = new HashSet<>();
 
     private float rating;
 

@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.*;
-import java.util.List;
+import java.util.Set;
 
 @Data
 public class OrderInfo {
@@ -60,6 +60,6 @@ public class OrderInfo {
             )
     )
     @NotEmpty
-    private List<String> deliveryHours;
+    private Set<String> deliveryHours;
 
 }

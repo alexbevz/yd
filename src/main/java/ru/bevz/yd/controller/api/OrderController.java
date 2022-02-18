@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.bevz.yd.controller.request.CompletedOrderRequest;
-import ru.bevz.yd.controller.request.OrdersRequest;
 import ru.bevz.yd.controller.request.CourierInfo;
+import ru.bevz.yd.controller.request.OrdersRequest;
 import ru.bevz.yd.controller.response.OrdersAssignOKResponse;
 import ru.bevz.yd.controller.response.OrdersCompleteOKResponse;
 import ru.bevz.yd.controller.response.OrdersCreatedResponse;
@@ -22,7 +22,8 @@ import ru.bevz.yd.dto.mapper.OrderMapper;
 import ru.bevz.yd.dto.model.OrderDTO;
 import ru.bevz.yd.service.OrderService;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")
@@ -51,10 +52,10 @@ public class OrderController {
             @RequestBody OrdersRequest ordersRequest
     ) {
 
-        List<OrderDTO> orderDTOS = ordersRequest.getOrderInfos()
+        Set<OrderDTO> orderDTOS = ordersRequest.getOrderInfos()
                 .stream()
                 .map(orderMapper::toOrderDTO)
-                .toList();
+                .collect(Collectors.toSet());
 
         OrderDTO courierDto = orderService.addOrders(orderDTOS);
 

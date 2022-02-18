@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
@@ -20,11 +20,11 @@ public class CourierInfoResponse {
 
     @JsonProperty("regions")
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
-    private List<Integer> regions;
+    private Set<Integer> regions;
 
     @JsonProperty("working_hours")
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
-    private List<String> workingHours;
+    private Set<String> workingHours;
 
     @JsonProperty("rating")
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
