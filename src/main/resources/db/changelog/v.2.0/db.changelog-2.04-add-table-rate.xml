@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+    <changeSet id="changelog-2.04-add-table-rate" author="Bevz" runOnChange="true">
+        <sqlFile path="${path-sql}2.04-add-table-rate.sql"/>
+        <rollback>
+            <sqlFile path="${path-sql}2.04-rollback.sql"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
