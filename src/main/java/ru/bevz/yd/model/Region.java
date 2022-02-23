@@ -22,7 +22,7 @@ public class Region {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "number_region")
+    @Column(name = "number")
     private int number;
 
 }
