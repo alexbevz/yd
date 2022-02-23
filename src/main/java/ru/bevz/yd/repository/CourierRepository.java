@@ -1,14 +1,46 @@
 package ru.bevz.yd.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.bevz.yd.model.Courier;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
 public interface CourierRepository extends JpaRepository<Courier, Integer> {
+
+    @Query(
+            nativeQuery = true,
+            value = """
+                    SELECT dt_assigned
+                    FROM assigned_courier
+                    WHERE id = :courierId;
+                    """
+    )
+    LocalDateTime getDTAssigned(int courierId);
+
+    @Modifying
+    @Query(
+            nativeQuery = true,
+            value = """
+                    INSERT INTO assigned_courier (id)
+                    VALUES (:courierId);
+                    """
+    )
+    void insertDTAssigned(int courierId);
+
+    @Modifying
+    @Query(
+            nativeQuery = true,
+            value = """
+                    DELETE FROM assigned_courier
+                    WHERE id = :courierId;
+                    """
+    )
+    void deleteDTAssigned(int courierId);
 
     @Query(
             value = "SELECT to_seconds(cast(MIN(subSelect.avgTimeRegions) AS time)) " +
