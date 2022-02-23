@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+    <include file="${path-v.2.0}db.changelog-2.01-add-table-unassigned-order.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.02-add-table-assigned-courier.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.03-add-table-assigned-order.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.04-add-table-rate.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.05-add-table-ratio.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.06-update-table-type-courier.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.07-add-table-completed-courier.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.08-add-table-completed-order.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.09-update-table-order.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.10-delete-type-status-order.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.11-update-table-region.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.12-create-trigger-mark-as-unnasigned-after-insert-order.xml"/>
+</databaseChangeLog>
