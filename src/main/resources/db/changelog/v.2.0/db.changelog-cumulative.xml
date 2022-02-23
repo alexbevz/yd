@@ -13,4 +13,6 @@
     <include file="${path-v.2.0}db.changelog-2.08-add-table-completed-order.xml"/>
     <include file="${path-v.2.0}db.changelog-2.09-update-table-order.xml"/>
     <include file="${path-v.2.0}db.changelog-2.10-delete-type-status-order.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.11-update-table-region.xml"/>
+    <include file="${path-v.2.0}db.changelog-2.12-create-trigger-mark-as-unnasigned-after-insert-order.xml"/>
 </databaseChangeLog>
