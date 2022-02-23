@@ -9,5 +9,5 @@
     <property name="path-v.2.0" value="${path-changelog}v.2.0/"/>
     <property name="path-sql" value="db/sql/"/>
     <include file="${path-v.1.0}db.changelog-cumulative.xml"/>
-    <include file="${path-v.2.0}db.changelog-cumulative.xml"/>
+<!--    <include file="${path-v.2.0}db.changelog-cumulative.xml"/>-->
 </databaseChangeLog>
