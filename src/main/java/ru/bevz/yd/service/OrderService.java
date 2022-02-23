@@ -6,19 +6,20 @@ import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.mapper.OrderMapper;
 import ru.bevz.yd.dto.model.OrderDTO;
 import ru.bevz.yd.exception.*;
-import ru.bevz.yd.model.*;
+import ru.bevz.yd.model.Courier;
+import ru.bevz.yd.model.Order;
+import ru.bevz.yd.model.Region;
+import ru.bevz.yd.model.TimePeriod;
 import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.repository.OrderRepository;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static ru.bevz.yd.util.DateTimeUtils.findTPForTime;
-import static ru.bevz.yd.util.DateTimeUtils.isTimeInTP;
 
 @Service
 public class OrderService {
@@ -79,7 +80,6 @@ public class OrderService {
         order.setWeight(orderDTO.getWeight());
         order.setRegion(secondaryServ.getOrSaveRegionByNumber(orderDTO.getRegion()));
         order.setTimePeriods(secondaryServ.getOrSaveTimePeriodsByString(orderDTO.getTimePeriods()));
-        order.setStatus(StatusOrder.UNASSIGNED);
 
         return orderMapper.toOrderDTO(orderRep.save(order));
     }
@@ -97,26 +97,17 @@ public class OrderService {
 
         Courier courier = optionalCourier.get();
 
-        Set<Order> orders =
-                orderRep.getAllByCourierAndStatus(courier, StatusOrder.ASSIGNED);
+        Set<Integer> idOrders =
+                orderRep.getIdAssignedOrdersByCourierId(courierId);
 
-        if (!orders.isEmpty()) {
-            orderDTO.setDatetimeAssign(
-                    orders
-                            .stream()
-                            .findAny()
-                            .get()
-                            .getDatetimeAssignment()
-                            .toString()
-            );
-            orderDTO.setIdOrders(orders.stream()
-                    .map(Order::getId)
-                    .collect(Collectors.toSet())
-            );
+        if (!idOrders.isEmpty()) {
+            orderDTO.setDatetimeAssign(courierRep.getDTAssigned(courierId).toString());
+            orderDTO.setIdOrders(idOrders);
             return orderDTO;
         }
 
-        orders = orderRep.getOrdersForAssigned(
+        float courierCapacity = courier.getTypeCourier().getCapacity();
+        List<Order> orders = orderRep.getOrdersForAssignedByOptions(
                 courier.getRegions()
                         .stream()
                         .map(Region::getId)
@@ -125,28 +116,35 @@ public class OrderService {
                         .stream()
                         .map(TimePeriod::getId)
                         .collect(Collectors.toSet()),
-                courier.getTypeCourier().getCapacity()
+                courierCapacity
         );
+
+        courierRep.deleteDTAssigned(courierId);
 
         if (orders.isEmpty()) {
             return orderDTO;
         }
 
-        LocalDateTime dateTimeAssignment = LocalDateTime.now();
+        courierRep.insertDTAssigned(courierId);
+        LocalDateTime DTAssignment = courierRep.getDTAssigned(courierId);
+
+        float currentWeight = 0;
 
         for (Order order : orders) {
-            order.setDatetimeAssignment(dateTimeAssignment);
-            order.setStatus(StatusOrder.ASSIGNED);
-            order.setCourier(courier);
+            float orderWeight = order.getWeight();
+            int orderId = order.getId();
+            if (currentWeight + orderWeight <= courierCapacity) {
+                orderRep.insertAssignedOrder(orderId, courierId);
+                orderRep.deleteUnassignedOrder(orderId);
+                idOrders.add(orderId);
+                currentWeight += orderWeight;
+            } else {
+                break;
+            }
         }
 
-        orderDTO.setDatetimeAssign(dateTimeAssignment.toString());
-        orderDTO.setIdOrders(
-                orders
-                        .stream()
-                        .map(Order::getId)
-                        .collect(Collectors.toSet())
-        );
+        orderDTO.setDatetimeAssign(DTAssignment.toString());
+        orderDTO.setIdOrders(idOrders);
 
         return orderDTO;
     }
@@ -155,57 +153,35 @@ public class OrderService {
     public OrderDTO completeOrder(OrderDTO orderDTO) {
         int orderId = orderDTO.getId();
         int courierId = orderDTO.getCourierId();
-        LocalDateTime DTCompleted =
+        LocalDateTime dtFinish =
                 LocalDateTime.parse(orderDTO.getDatetimeComplete());
 
-        Optional<Order> orderOptional = orderRep.findById(orderId);
-        if (orderOptional.isEmpty()) {
+        if (!orderRep.existsById(orderId)) {
             throw new EntityNotExistsException(new Order().setId(orderId));
         }
-        Order order = orderOptional.get();
-        if (order.getStatus() == StatusOrder.COMPLETED) {
-            throw new OrderHasBeenDeliveredException(order);
+
+        //TODO: return other message
+        if (orderRep.getIdCompletedOrderByOrderId(orderId).isPresent()) {
+            throw new OrderHasBeenDeliveredException(new Order().setId(orderId));
         }
 
-        Optional<Courier> courierOptional = courierRep.findById(courierId);
-        if (courierOptional.isEmpty()) {
+        if (!courierRep.existsById(courierId)) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
-        Courier courier = courierOptional.get();
 
-        if (order.getCourier().getId() != courierId) {
-            throw new OrderAssignedForOtherCourierException(order);
+        //TODO: return other message
+        if (orderRep.getCourierIdByCompletedOrderId(orderId) != courierId) {
+            throw new OrderAssignedForOtherCourierException(new Order().setId(orderId));
         }
 
-        Optional<TimePeriod> courierTimePeriodOptional =
-                findTPForTime(courier.getTimePeriods(), DTCompleted);
-        if (courierTimePeriodOptional.isEmpty()) {
-            throw new NotFoundTPForEntityException(courier);
-        }
-        TimePeriod courierTP = courierTimePeriodOptional.get();
+        //TODO: incorrect, need fix
+        int completedCourierId = courierId;
 
-        Optional<Order> lastOrderOptional =
-                orderRep.getLastCompletedOrder(courierId, DTCompleted.toLocalDate());
+        LocalDateTime dtStart =
+                orderRep.getDTFinishForCompleting(courierId, dtFinish);
 
-        LocalDateTime dateTimeRealizationStart;
-
-        if (lastOrderOptional.isPresent()) {
-            Order lastOrder = lastOrderOptional.get();
-            if (isTimeInTP(courierTP, lastOrder.getDatetimeRealization())) {
-                dateTimeRealizationStart = lastOrder.getDatetimeRealization();
-            } else {
-                dateTimeRealizationStart =
-                        LocalDateTime.of(DTCompleted.toLocalDate(), courierTP.getFrom());
-            }
-        } else {
-            dateTimeRealizationStart =
-                    LocalDateTime.of(DTCompleted.toLocalDate(), courierTP.getFrom());
-        }
-
-        order.setStatus(StatusOrder.COMPLETED);
-        order.setDatetimeRealizationStart(dateTimeRealizationStart);
-        order.setDatetimeRealization(DTCompleted);
-        order.setTypeCourier(courier.getTypeCourier());
+        orderRep.insertCompletedOrder(orderId, completedCourierId, dtStart, dtFinish);
+        orderRep.deleteAssignedOrder(orderId);
 
         return orderDTO;
     }
