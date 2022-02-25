@@ -28,6 +28,9 @@ public class OrderService {
     private SecondaryService secondaryServ;
 
     @Autowired
+    private CourierService courierService;
+
+    @Autowired
     private OrderRepository orderRep;
 
     @Autowired
@@ -88,17 +91,16 @@ public class OrderService {
     public OrderDTO assignOrders(OrderDTO orderDTO) {
         int courierId = orderDTO.getCourierId();
 
-        orderDTO = new OrderDTO();
         Optional<Courier> optionalCourier = courierRep.findById(courierId);
 
         if (optionalCourier.isEmpty()) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
 
-        Courier courier = optionalCourier.get();
-
         Set<Integer> idOrders =
                 orderRep.getIdAssignedOrdersByCourierId(courierId);
+
+        orderDTO = new OrderDTO();
 
         if (!idOrders.isEmpty()) {
             orderDTO.setDatetimeAssign(courierRep.getDTAssigned(courierId).toString());
@@ -106,6 +108,8 @@ public class OrderService {
             return orderDTO;
         }
 
+        //TODO: implement with courierId
+        Courier courier = optionalCourier.get();
         float courierCapacity = courier.getTypeCourier().getCapacity();
         List<Order> orders = orderRep.getOrdersForAssignedByOptions(
                 courier.getRegions()
@@ -152,33 +156,32 @@ public class OrderService {
     @Transactional
     public OrderDTO completeOrder(OrderDTO orderDTO) {
         int orderId = orderDTO.getId();
-        int courierId = orderDTO.getCourierId();
-        LocalDateTime dtFinish =
-                LocalDateTime.parse(orderDTO.getDatetimeComplete());
 
         if (!orderRep.existsById(orderId)) {
             throw new EntityNotExistsException(new Order().setId(orderId));
         }
 
-        //TODO: return other message
         if (orderRep.getIdCompletedOrderByOrderId(orderId).isPresent()) {
             throw new OrderHasBeenDeliveredException(new Order().setId(orderId));
         }
+
+        int courierId = orderDTO.getCourierId();
 
         if (!courierRep.existsById(courierId)) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
 
-        //TODO: return other message
         if (orderRep.getCourierIdByCompletedOrderId(orderId) != courierId) {
             throw new OrderAssignedForOtherCourierException(new Order().setId(orderId));
         }
 
-        //TODO: incorrect, need fix
-        int completedCourierId = courierId;
+        LocalDateTime dtFinish =
+                LocalDateTime.parse(orderDTO.getDatetimeComplete());
 
         LocalDateTime dtStart =
                 orderRep.getDTFinishForCompleting(courierId, dtFinish);
+
+        int completedCourierId = courierService.getCurrentCompletedCourier(courierId);
 
         orderRep.insertCompletedOrder(orderId, completedCourierId, dtStart, dtFinish);
         orderRep.deleteAssignedOrder(orderId);

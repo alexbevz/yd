@@ -43,22 +43,47 @@ public interface CourierRepository extends JpaRepository<Courier, Integer> {
     void deleteDTAssigned(int courierId);
 
     @Query(
-            value = "SELECT to_seconds(cast(MIN(subSelect.avgTimeRegions) AS time)) " +
-                    "FROM (SELECT AVG(datetime_realization - datetime_realization_start) AS avgTimeRegions " +
-                    "FROM \"order\" " +
-                    "WHERE courier_id = :courierId AND status = 'COMPLETED' " +
-                    "GROUP BY region_id) AS subSelect ;"
-            , nativeQuery = true
+            nativeQuery = true,
+            value = """
+                    SELECT tcour.ratio_id
+                    FROM courier AS cour
+                             JOIN type_courier AS tcour
+                                  ON cour.type_courier_id = tcour.id
+                    WHERE cour.id = :courierId;
+                    """
     )
-    Optional<Integer> getMinAmongAvgTimeDeliveryRegionsByCourierId(int courierId);
+    Optional<Integer> getRatioIdByCourierId(int courierId);
 
     @Query(
-            value = "SELECT SUM(:award * profit_ratio) " +
-                    "FROM \"order\" " +
-                    "JOIN type_courier ON type_courier.id = type_courier_id " +
-                    "WHERE status = 'COMPLETED' AND courier_id = :courierId ;"
-            , nativeQuery = true
+            nativeQuery = true,
+            value = """
+                    SELECT min(subSelect.avgTimeRegions)
+                    FROM (SELECT avg(cord.dt_finish - cord.dt_start) AS avgTimeRegions
+                          FROM "order" AS ord
+                                   JOIN completed_order AS cord
+                                        ON ord.id = cord.id
+                                   JOIN completed_courier AS ccour
+                                        ON cord.completed_courier_id = ccour.id
+                          WHERE ccour.courier_id = :courierId
+                          GROUP BY region_id) AS subSelect;
+                    """
     )
-    Optional<Integer> getEarningsByCourierIdAndAwardForOrder(int courierId, float award);
+    Optional<LocalDateTime> getMinAmongAvgTimeDeliveryRegionsByCourierId(int courierId);
+
+    @Query(
+            nativeQuery = true,
+            value = """
+                    SELECT SUM(ratio.value * rate.value)
+                    FROM completed_courier AS ccour
+                             JOIN completed_order AS cord
+                                  ON ccour.id = cord.completed_courier_id
+                             JOIN rate
+                                  ON ccour.rate_id = rate.id
+                             JOIN ratio
+                                  ON ccour.ratio_id = ratio.id
+                    WHERE ccour.courier_id = :courierId
+                    """
+    )
+    Optional<Integer> getEarningsByCourierIdAndAwardForOrder(int courierId);
 
 }

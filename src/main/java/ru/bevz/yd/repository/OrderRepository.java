@@ -18,11 +18,21 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query(
             nativeQuery = true,
             value = """
-                    DELETE FROM unassigned_order
-                    WHERE id = :orderId;
+                    INSERT INTO unassigned_order
+                    VALUES (:orderId);
                     """
     )
-    void deleteUnassignedOrder(int courierId);
+    void createUnassignedOrder(int orderId);
+
+    @Modifying
+    @Query(
+            nativeQuery = true,
+            value = """
+                    DELETE FROM unassigned_order
+                    WHERE id = :orderId ;
+                    """
+    )
+    void deleteUnassignedOrder(int orderId);
 
     @Modifying
     @Query(
@@ -107,12 +117,11 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query(
             nativeQuery = true,
             value = """
-                    SELECT coalesce(MAX(cord.dt_finish), :dtAssigned)
-                    FROM courier AS cour
-                             JOIN completed_courier AS ccour
-                                  ON cour.id = ccour.courier_id
+                    SELECT coalesce(max(cord.dt_finish), :dtAssigned)
+                    FROM completed_courier AS ccour
                              JOIN completed_order AS cord
-                                  ON ccour.id = cord.completed_courier_id AND cord.dt_finish > :dtAssigned;
+                                  ON ccour.id = cord.completed_courier_id AND cord.dt_finish > :dtAssigned
+                    WHERE ccour.courier_id = :courierId;
                     """
     )
     LocalDateTime getDTFinishForCompleting(int courierId, LocalDateTime dtAssigned);
@@ -128,39 +137,14 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     Integer getCourierIdByCompletedOrderId(int orderId);
 
     @Query(
-            value = "SELECT *\n" +
-                    "FROM \"order\"\n" +
-                    "WHERE courier_id = :courierId\n" +
-                    "  AND status = 'ASSIGNED'\n" +
-                    "  AND weight > :capacity",
-            nativeQuery = true
+            nativeQuery = true,
+            value = """
+                    SELECT DISTINCT ord.*
+                    FROM "order" AS ord
+                             JOIN assigned_order AS aord
+                                  ON aord.assigned_courier_id = :courierId AND ord.id = aord.id;
+                    """
     )
-    Set<Order> getOrdersForRemoveByCapacity(int courierId, float capacity);
-
-
-    @Query(
-            value = "SELECT *\n" +
-                    "FROM \"order\"\n" +
-                    "WHERE courier_id = :courierId\n" +
-                    "  AND status = 'ASSIGNED'\n" +
-                    "  AND region_id NOT IN :regionIdList",
-            nativeQuery = true
-    )
-    Set<Order> getOrdersForRemoveByRegion(int courierId, Set<Integer> regionIdList);
-
-    @Query(
-            value = "SELECT DISTINCT *\n" +
-                    "FROM \"order\" ord\n" +
-                    "         JOIN order_time_period ON ord.id = order_id\n" +
-                    "         JOIN time_period ordtp ON time_period_id = ordtp.id\n" +
-                    "         JOIN time_period courtp ON courtp.id IN :timePeriodIdList\n" +
-                    "WHERE ord.courier_id = :courierId\n" +
-                    "  AND ord.status = 'ASSIGNED'\n" +
-                    "  AND NOT (courtp.left_limit <= ordtp.left_limit AND ordtp.left_limit < courtp.right_limit\n" +
-                    "    OR courtp.left_limit < ordtp.right_limit AND ordtp.right_limit <= courtp.right_limit\n" +
-                    "    OR courtp.left_limit >= ordtp.left_limit AND courtp.right_limit <= ordtp.right_limit)",
-            nativeQuery = true
-    )
-    Set<Order> getOrdersForRemoveByTimePeriod(int courierId, Set<Integer> timePeriodIdList);
+    Set<Order> getAssignedOrderByCourierId(int courierId);
 
 }

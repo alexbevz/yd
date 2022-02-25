@@ -3,7 +3,6 @@ package ru.bevz.yd.service;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.bevz.yd.constant.GlobalConstant;
 import ru.bevz.yd.controller.IdList;
 import ru.bevz.yd.dto.mapper.CourierMapper;
 import ru.bevz.yd.dto.model.CourierDTO;
@@ -14,9 +13,12 @@ import ru.bevz.yd.model.*;
 import ru.bevz.yd.repository.CourierRepository;
 import ru.bevz.yd.repository.OrderRepository;
 import ru.bevz.yd.repository.TypeCourierRepository;
+import ru.bevz.yd.util.DateTimeUtils;
 
 import javax.transaction.Transactional;
 import javax.validation.ValidationException;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -47,8 +49,7 @@ public class CourierService {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
         return courierRep.getEarningsByCourierIdAndAwardForOrder(
-                courierId,
-                GlobalConstant.AWARD_FOR_ORDER
+                courierId
         ).orElse(0);
     }
 
@@ -57,9 +58,29 @@ public class CourierService {
         if (!courierRep.existsById(courierId)) {
             throw new EntityNotExistsException(new Courier().setId(courierId));
         }
-        int hs = 60 * 60;
-        int t = courierRep.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId).orElse(hs);
+        int m = 60;
+        int hs = m * 60;
+        Optional<LocalDateTime> dtOptional =
+                courierRep.getMinAmongAvgTimeDeliveryRegionsByCourierId(courierId);
+        int t = hs;
+        if (dtOptional.isPresent()) {
+            LocalDateTime dt = dtOptional.get();
+            t = dt.getHour() * hs + dt.getMinute() * m + dt.getSecond();
+        }
         return (float) (hs - Math.min(t, hs)) / hs * 5;
+    }
+
+    public int getCurrentCompletedCourier(int courierId) {
+        //TODO: Implement like wrapper
+        if (courierRep.existsById(courierId)) {
+            throw new EntityNotExistsException(new Courier().setId(courierId));
+        }
+        Optional<Integer> ratioIdOptional = courierRep.getRatioIdByCourierId(courierId);
+        if (ratioIdOptional.isEmpty()) {
+            throw new EntityNotExistsException(new Courier().setId(courierId));
+        }
+
+        return secondaryServ.getOrSaveCompletedCourier(courierId, ratioIdOptional.get()).getId();
     }
 
     @Transactional
@@ -137,26 +158,8 @@ public class CourierService {
 
         Courier originalCourier = courierOptional.get();
 
-        String newTypeCourierStr = courierDTO.getType();
-        if (newTypeCourierStr != null) {
-            Optional<TypeCourier> newTypeCourierOptional =
-                    typeCourierRep.findTypeCourierByName(newTypeCourierStr);
-            if (newTypeCourierOptional.isEmpty()) {
-                throw new EntityNotExistsException(newTypeCourierStr);
-            }
-            TypeCourier newTypeCourier = newTypeCourierOptional.get();
-
-            if (originalCourier.getTypeCourier().getCapacity() > newTypeCourier.getCapacity()) {
-                Set<Order> ordersForRemove =
-                        orderRep.getOrdersForRemoveByCapacity(courierId, newTypeCourier.getCapacity());
-                for (Order order : ordersForRemove) {
-                    order.setStatus(StatusOrder.UNASSIGNED);
-                    order.setCourier(null);
-                    order.setDatetimeAssignment(null);
-                }
-            }
-            originalCourier.setTypeCourier(newTypeCourier);
-        }
+        Set<Order> assignedOrders =
+                orderRep.getAssignedOrderByCourierId(courierId);
 
         Set<Integer> newRegionListStr = courierDTO.getRegions();
         if (newRegionListStr != null) {
@@ -164,18 +167,13 @@ public class CourierService {
                     secondaryServ.getOrSaveRegionsByNumber(courierDTO.getRegions());
 
             if (!originalCourier.getRegions().containsAll(newRegions)) {
-                Set<Order> orderListForRemove =
-                        orderRep.getOrdersForRemoveByRegion(
-                                courierId,
-                                newRegions
-                                        .stream()
-                                        .map(Region::getId)
-                                        .collect(Collectors.toSet())
-                        );
-                for (Order order : orderListForRemove) {
-                    order.setStatus(StatusOrder.UNASSIGNED);
-                    order.setCourier(null);
-                    order.setDatetimeAssignment(null);
+                for (Order order : assignedOrders) {
+                    if (!newRegions.contains(order.getRegion())) {
+                        int orderId = order.getId();
+                        assignedOrders.remove(order);
+                        orderRep.createUnassignedOrder(orderId);
+                        orderRep.deleteAssignedOrder(orderId);
+                    }
                 }
                 originalCourier.setRegions(newRegions);
             }
@@ -187,21 +185,53 @@ public class CourierService {
                     secondaryServ.getOrSaveTimePeriodsByString(courierDTO.getTimePeriods());
 
             if (!originalCourier.getTimePeriods().containsAll(newTimePeriods)) {
-                Set<Order> ordersForRemove =
-                        orderRep.getOrdersForRemoveByTimePeriod(
-                                courierId,
-                                newTimePeriods
-                                        .stream()
-                                        .map(TimePeriod::getId)
-                                        .collect(Collectors.toSet())
-                        );
-                for (Order order : ordersForRemove) {
-                    order.setStatus(StatusOrder.UNASSIGNED);
-                    order.setCourier(null);
-                    order.setDatetimeAssignment(null);
+                for (Order order : assignedOrders) {
+                    for (TimePeriod tp : order.getTimePeriods()) {
+                        if (
+                                newTimePeriods.stream().anyMatch(
+                                        val -> DateTimeUtils.isTimeInTP(val, tp.getFrom()) ||
+                                                DateTimeUtils.isTimeInTP(val, tp.getTo()))
+                        ) {
+                            int orderId = order.getId();
+                            assignedOrders.remove(order);
+                            orderRep.createUnassignedOrder(orderId);
+                            orderRep.deleteAssignedOrder(orderId);
+                        }
+                    }
                 }
                 originalCourier.setTimePeriods(newTimePeriods);
             }
+        }
+
+        String newTypeCourierStr = courierDTO.getType();
+        if (newTypeCourierStr != null) {
+            Optional<TypeCourier> newTypeCourierOptional =
+                    typeCourierRep.findTypeCourierByName(newTypeCourierStr);
+            if (newTypeCourierOptional.isEmpty()) {
+                throw new EntityNotExistsException(newTypeCourierStr);
+            }
+            TypeCourier newTypeCourier = newTypeCourierOptional.get();
+            float newCapacity = newTypeCourier.getCapacity();
+
+            float sum = 0;
+            for (float weight : assignedOrders.stream().map(Order::getWeight).collect(Collectors.toSet())) {
+                sum += weight;
+            }
+
+            if (originalCourier.getTypeCourier().getCapacity() > newCapacity) {
+                for (Order order : assignedOrders.stream()
+                        .sorted(Comparator.comparingDouble(Order::getWeight).reversed())
+                        .toList()
+                ) {
+                    if (sum > newCapacity) {
+                        int orderId = order.getId();
+                        assignedOrders.remove(order);
+                        orderRep.createUnassignedOrder(orderId);
+                        orderRep.deleteAssignedOrder(orderId);
+                    }
+                }
+            }
+            originalCourier.setTypeCourier(newTypeCourier);
         }
 
         courierDTO = courierMapper.toCourierDto(originalCourier);
