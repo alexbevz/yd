@@ -5,11 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -19,7 +16,6 @@ import java.util.Set;
 @Accessors(chain = true)
 @Entity
 @Table(name = "\"order\"")
-@TypeDef(name = "status_order", typeClass = PostgreSQLStatusOrder.class)
 public class Order {
 
     @Id
@@ -33,11 +29,6 @@ public class Order {
     @Column(name = "weight")
     private float weight;
 
-    @Enumerated(EnumType.STRING)
-    @Type(type = "status_order")
-    @Column(name = "status")
-    private StatusOrder status;
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_time_period",
@@ -45,22 +36,5 @@ public class Order {
             inverseJoinColumns = @JoinColumn(name = "time_period_id")
     )
     private Set<TimePeriod> timePeriods;
-
-    @Column(name = "datetime_assignment")
-    private LocalDateTime datetimeAssignment;
-
-    @ManyToOne
-    @JoinColumn(name = "courier_id")
-    private Courier courier;
-
-    @ManyToOne
-    @JoinColumn(name = "type_courier_id")
-    private TypeCourier typeCourier;
-
-    @Column(name = "datetime_realization_start")
-    private LocalDateTime datetimeRealizationStart;
-
-    @Column(name = "datetime_realization")
-    private LocalDateTime datetimeRealization;
 
 }

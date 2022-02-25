@@ -14,15 +14,14 @@ import javax.persistence.*;
 @ToString
 @Accessors(chain = true)
 @Entity
-@Table(name = "region")
-public class Region {
+@Table(name = "rate")
+public class Rate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
 
-    @Column(name = "number")
-    private int number;
-
+    @Column(name = "value")
+    private float value;
 }

@@ -28,7 +28,8 @@ public class TypeCourier {
     @Column(name = "capacity")
     private float capacity;
 
-    @Column(name = "profit_ratio")
-    private float profitRatio;
+    @ManyToOne
+    @JoinColumn(name = "ratio_id")
+    private Ratio ratio;
 
 }

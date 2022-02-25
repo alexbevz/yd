@@ -14,15 +14,22 @@ import javax.persistence.*;
 @ToString
 @Accessors(chain = true)
 @Entity
-@Table(name = "region")
-public class Region {
+@Table(name = "completed_courier")
+public class CompletedCourier {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
 
-    @Column(name = "number")
-    private int number;
+    @ManyToOne
+    @JoinColumn(name = "courier_id")
+    private Courier courier;
 
+    @ManyToOne
+    @JoinColumn(name = "rate_id")
+    private Rate rate;
+
+    @ManyToOne
+    @JoinColumn(name = "ratio_id")
+    private Ratio ratio;
 }
